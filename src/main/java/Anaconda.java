@@ -2,6 +2,8 @@ import java.util.Scanner;
 
 public class Anaconda {
     public static void main(String[] args) {
+        String[] list = new String[100];
+        int listNum = 0;
         String line = "____________________________________________________________";
 
         String exit = line + "\nAlright, until next time.\n" + line;
@@ -19,13 +21,21 @@ public class Anaconda {
 
         Scanner scanner = new Scanner(System.in);
         String s;
-        do {
+        while(true) {
             s = scanner.next();
+            if(s.equalsIgnoreCase("bye")) break;
+
             System.out.println(line);
-            System.out.println(s);
+            if(s.equalsIgnoreCase("list")) {
+                for(int i = 0; i < listNum; i++)
+                    System.out.println(i + 1 + ". " + list[i]);
+            }
+            else {
+                System.out.println("Added: " + s + ". what else?");
+                list[listNum++] = s;
+            }
             System.out.println(line);
         }
-        while (!s.equalsIgnoreCase("bye"));
         System.out.println(exit);
     }
 }
