@@ -1,6 +1,10 @@
+import java.util.Scanner;
+
 public class Anaconda {
     public static void main(String[] args) {
         String line = "____________________________________________________________";
+
+        String exit = line + "\nAlright, until next time.\n" + line;
 
         String banner =
                 "    _    _   _    _    ____ ___  _   _ ____    _    \n"
@@ -12,8 +16,16 @@ public class Anaconda {
         System.out.println(banner);
         System.out.println("Yo, it's Anaconda.");
         System.out.println("What do you want?");
-        System.out.println(line);
-        System.out.println("Alright, until next time.");
-        System.out.println(line);
+
+        Scanner scanner = new Scanner(System.in);
+        String s;
+        do {
+            s = scanner.next();
+            System.out.println(line);
+            System.out.println(s);
+            System.out.println(line);
+        }
+        while (!s.equalsIgnoreCase("bye"));
+        System.out.println(exit);
     }
 }
