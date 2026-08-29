@@ -31,55 +31,16 @@ public class Anaconda {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String input = scanner.nextLine().trim();
-            String[] inputParts = input.split("\\s+", 2);
-            String command = inputParts[0].toLowerCase();
-            String arguments = inputParts.length == 2 ? inputParts[1].trim() : "";
 
-            if (command.equals("bye")) {
+            if (input.equalsIgnoreCase("bye")) {
                 break;
             }
 
             System.out.println(LINE);
-            switch (command) {
-            case "list":
-                System.out.println("Your list:");
-                System.out.print(Task.displayList(tasks));
-                break;
-            case "mark":
-                int markIndex = Integer.parseInt(arguments) - 1;
-                tasks[markIndex].markAsDone();
-                System.out.println("Marked it done for you:");
-                System.out.println("  " + tasks[markIndex]);
-                break;
-            case "unmark":
-                int unmarkIndex = Integer.parseInt(arguments) - 1;
-                tasks[unmarkIndex].markAsUndone();
-                System.out.println("Really? Unmarked? Alright . . .");
-                System.out.println("  " + tasks[unmarkIndex]);
-                break;
-            case "todo":
-                tasks[taskCount] = new ToDo(arguments);
-                printTaskAdded(tasks[taskCount], ++taskCount);
-                break;
-            case "deadline":
-                int byPosition = arguments.indexOf(" /by ");
-                String deadlineDescription = arguments.substring(0, byPosition).trim();
-                String deadline = arguments.substring(byPosition + " /by ".length()).trim();
-                tasks[taskCount] = new Deadline(deadlineDescription, deadline);
-                printTaskAdded(tasks[taskCount], ++taskCount);
-                break;
-            case "event":
-                int fromPosition = arguments.indexOf(" /from ");
-                int toPosition = arguments.indexOf(" /to ", fromPosition + " /from ".length());
-                String eventDescription = arguments.substring(0, fromPosition).trim();
-                String start = arguments.substring(fromPosition + " /from ".length(), toPosition).trim();
-                String end = arguments.substring(toPosition + " /to ".length()).trim();
-                tasks[taskCount] = new Event(eventDescription, start, end);
-                printTaskAdded(tasks[taskCount], ++taskCount);
-                break;
-            default:
-                // Invalid commands will be handled in the later exception-handling increment.
-                break;
+            try {
+                taskCount = handleCommand(input, tasks, taskCount);
+            } catch (AnacondaException exception) {
+                System.out.println("Oops! " + exception.getMessage());
             }
             System.out.println(LINE);
         }
@@ -88,6 +49,137 @@ public class Anaconda {
         System.out.println(LINE);
         System.out.println("Alright, until next time.");
         System.out.println(LINE);
+    }
+
+    /**
+     * Executes one command and returns the resulting task count.
+     *
+     * @param input complete input entered by the user
+     * @param tasks array containing the current tasks
+     * @param taskCount number of tasks currently stored
+     * @return updated number of stored tasks
+     * @throws AnacondaException if the command or its arguments are invalid
+     */
+    private static int handleCommand(String input, Task[] tasks, int taskCount) throws AnacondaException {
+        if (input.isEmpty()) {
+            throw new AnacondaException("Please enter a command.");
+        }
+
+        String[] inputParts = input.split("\\s+", 2);
+        String command = inputParts[0].toLowerCase();
+        String arguments = inputParts.length == 2 ? inputParts[1].trim() : "";
+
+        switch (command) {
+        case "list":
+            requireNoArguments(arguments, "list");
+            System.out.println("Your list:");
+            System.out.print(Task.displayList(tasks));
+            return taskCount;
+        case "mark":
+            int markIndex = parseTaskIndex(arguments, taskCount);
+            tasks[markIndex].markAsDone();
+            System.out.println("Marked it done for you:");
+            System.out.println("  " + tasks[markIndex]);
+            return taskCount;
+        case "unmark":
+            int unmarkIndex = parseTaskIndex(arguments, taskCount);
+            tasks[unmarkIndex].markAsUndone();
+            System.out.println("Really? Unmarked? Alright . . .");
+            System.out.println("  " + tasks[unmarkIndex]);
+            return taskCount;
+        case "todo":
+            requireDescription(arguments, "todo");
+            return addTask(tasks, taskCount, new ToDo(arguments));
+        case "deadline":
+            return addDeadline(tasks, taskCount, arguments);
+        case "event":
+            return addEvent(tasks, taskCount, arguments);
+        case "bye":
+            throw new AnacondaException("The bye command cannot have extra text.");
+        default:
+            throw new AnacondaException("I don't recognize that command.");
+        }
+    }
+
+    /**
+     * Parses and adds a deadline command's arguments.
+     */
+    private static int addDeadline(Task[] tasks, int taskCount, String arguments) throws AnacondaException {
+        int byPosition = arguments.indexOf("/by");
+        if (byPosition < 0) {
+            throw new AnacondaException("A deadline needs '/by' followed by a date or time.");
+        }
+
+        String description = arguments.substring(0, byPosition).trim();
+        String by = arguments.substring(byPosition + "/by".length()).trim();
+        requireDescription(description, "deadline");
+        if (by.isEmpty()) {
+            throw new AnacondaException("A deadline needs a date or time after '/by'.");
+        }
+        return addTask(tasks, taskCount, new Deadline(description, by));
+    }
+
+    /**
+     * Parses and adds an event command's arguments.
+     */
+    private static int addEvent(Task[] tasks, int taskCount, String arguments) throws AnacondaException {
+        int fromPosition = arguments.indexOf("/from");
+        int toPosition = fromPosition < 0 ? -1 : arguments.indexOf("/to", fromPosition + "/from".length());
+        if (fromPosition < 0 || toPosition < 0) {
+            throw new AnacondaException("An event needs both '/from' and '/to' times.");
+        }
+
+        String description = arguments.substring(0, fromPosition).trim();
+        String from = arguments.substring(fromPosition + "/from".length(), toPosition).trim();
+        String to = arguments.substring(toPosition + "/to".length()).trim();
+        requireDescription(description, "event");
+        if (from.isEmpty() || to.isEmpty()) {
+            throw new AnacondaException("An event needs times after both '/from' and '/to'.");
+        }
+        return addTask(tasks, taskCount, new Event(description, from, to));
+    }
+
+    /**
+     * Converts a one-based task number to a valid array index.
+     */
+    private static int parseTaskIndex(String arguments, int taskCount) throws AnacondaException {
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(arguments);
+        } catch (NumberFormatException exception) {
+            throw new AnacondaException("Please provide one task number.");
+        }
+
+        if (taskNumber < 1 || taskNumber > taskCount) {
+            throw new AnacondaException("Task " + taskNumber + " does not exist.");
+        }
+        return taskNumber - 1;
+    }
+
+    /**
+     * Stores a task after checking that the fixed-size list has room.
+     */
+    private static int addTask(Task[] tasks, int taskCount, Task task) throws AnacondaException {
+        if (taskCount >= tasks.length) {
+            throw new AnacondaException("The task list is full.");
+        }
+        tasks[taskCount] = task;
+        printTaskAdded(task, taskCount + 1);
+        return taskCount + 1;
+    }
+
+    /** Ensures a task description is present. */
+    private static void requireDescription(String description, String taskType) throws AnacondaException {
+        if (description.isEmpty()) {
+            throw new AnacondaException("The description of a " + taskType + " cannot be empty.");
+        }
+    }
+
+    /** Ensures a command that takes no arguments has none. */
+    private static void requireNoArguments(String arguments, String command) throws AnacondaException {
+        if (!arguments.isEmpty()) {
+            throw new AnacondaException("The " + command + " command does not take extra text.");
+        }
     }
 
     /**
