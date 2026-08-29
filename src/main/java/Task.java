@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * Represents a task that can be marked as done or not done.
  */
@@ -28,13 +30,13 @@ public class Task {
     /**
      * Formats all stored tasks as a numbered list.
      *
-     * @param tasks task array whose unused entries are {@code null}
+     * @param tasks tasks to format
      * @return numbered task list
      */
-    public static String displayList(Task[] tasks) {
+    public static String displayList(List<Task> tasks) {
         StringBuilder output = new StringBuilder();
-        for (int i = 0; i < tasks.length && tasks[i] != null; i++) {
-            output.append(i + 1).append('.').append(tasks[i]).append('\n');
+        for (int i = 0; i < tasks.size(); i++) {
+            output.append(i + 1).append('.').append(tasks.get(i)).append('\n');
         }
         return output.toString();
     }

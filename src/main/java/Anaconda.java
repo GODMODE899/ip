@@ -1,10 +1,10 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
  * Runs the Anaconda chatbot and processes commands entered by the user.
  */
 public class Anaconda {
-    private static final int MAX_TASKS = 100;
     private static final String LINE = "____________________________________________________________";
 
     /**
@@ -13,8 +13,7 @@ public class Anaconda {
      * @param args command-line arguments, which are not used
      */
     public static void main(String[] args) {
-        Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
 
         String banner =
                 "    _    _   _    _    ____ ___  _   _ ____    _\n"
@@ -38,7 +37,7 @@ public class Anaconda {
 
             System.out.println(LINE);
             try {
-                taskCount = handleCommand(input, tasks, taskCount);
+                handleCommand(input, tasks);
             } catch (AnacondaException exception) {
                 System.out.println("Oops! " + exception.getMessage());
             }
@@ -52,15 +51,13 @@ public class Anaconda {
     }
 
     /**
-     * Executes one command and returns the resulting task count.
+     * Executes one command and updates the task list when necessary.
      *
      * @param input complete input entered by the user
-     * @param tasks array containing the current tasks
-     * @param taskCount number of tasks currently stored
-     * @return updated number of stored tasks
+     * @param tasks list containing the current tasks
      * @throws AnacondaException if the command or its arguments are invalid
      */
-    private static int handleCommand(String input, Task[] tasks, int taskCount) throws AnacondaException {
+    private static void handleCommand(String input, ArrayList<Task> tasks) throws AnacondaException {
         if (input.isEmpty()) {
             throw new AnacondaException("Please enter a command.");
         }
@@ -74,26 +71,36 @@ public class Anaconda {
             requireNoArguments(arguments, "list");
             System.out.println("Your list:");
             System.out.print(Task.displayList(tasks));
-            return taskCount;
+            break;
         case "mark":
-            int markIndex = parseTaskIndex(arguments, taskCount);
-            tasks[markIndex].markAsDone();
+            int markIndex = parseTaskIndex(arguments, tasks.size());
+            tasks.get(markIndex).markAsDone();
             System.out.println("Marked it done for you:");
-            System.out.println("  " + tasks[markIndex]);
-            return taskCount;
+            System.out.println("  " + tasks.get(markIndex));
+            break;
         case "unmark":
-            int unmarkIndex = parseTaskIndex(arguments, taskCount);
-            tasks[unmarkIndex].markAsUndone();
+            int unmarkIndex = parseTaskIndex(arguments, tasks.size());
+            tasks.get(unmarkIndex).markAsUndone();
             System.out.println("Really? Unmarked? Alright . . .");
-            System.out.println("  " + tasks[unmarkIndex]);
-            return taskCount;
+            System.out.println("  " + tasks.get(unmarkIndex));
+            break;
+        case "delete":
+            int deleteIndex = parseTaskIndex(arguments, tasks.size());
+            Task removedTask = tasks.remove(deleteIndex);
+            System.out.println("Noted. I've removed this task:");
+            System.out.println("  " + removedTask);
+            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+            break;
         case "todo":
             requireDescription(arguments, "todo");
-            return addTask(tasks, taskCount, new ToDo(arguments));
+            addTask(tasks, new ToDo(arguments));
+            break;
         case "deadline":
-            return addDeadline(tasks, taskCount, arguments);
+            addDeadline(tasks, arguments);
+            break;
         case "event":
-            return addEvent(tasks, taskCount, arguments);
+            addEvent(tasks, arguments);
+            break;
         case "bye":
             throw new AnacondaException("The bye command cannot have extra text.");
         default:
@@ -104,7 +111,7 @@ public class Anaconda {
     /**
      * Parses and adds a deadline command's arguments.
      */
-    private static int addDeadline(Task[] tasks, int taskCount, String arguments) throws AnacondaException {
+    private static void addDeadline(ArrayList<Task> tasks, String arguments) throws AnacondaException {
         int byPosition = arguments.indexOf("/by");
         if (byPosition < 0) {
             throw new AnacondaException("A deadline needs '/by' followed by a date or time.");
@@ -116,13 +123,13 @@ public class Anaconda {
         if (by.isEmpty()) {
             throw new AnacondaException("A deadline needs a date or time after '/by'.");
         }
-        return addTask(tasks, taskCount, new Deadline(description, by));
+        addTask(tasks, new Deadline(description, by));
     }
 
     /**
      * Parses and adds an event command's arguments.
      */
-    private static int addEvent(Task[] tasks, int taskCount, String arguments) throws AnacondaException {
+    private static void addEvent(ArrayList<Task> tasks, String arguments) throws AnacondaException {
         int fromPosition = arguments.indexOf("/from");
         int toPosition = fromPosition < 0 ? -1 : arguments.indexOf("/to", fromPosition + "/from".length());
         if (fromPosition < 0 || toPosition < 0) {
@@ -136,11 +143,11 @@ public class Anaconda {
         if (from.isEmpty() || to.isEmpty()) {
             throw new AnacondaException("An event needs times after both '/from' and '/to'.");
         }
-        return addTask(tasks, taskCount, new Event(description, from, to));
+        addTask(tasks, new Event(description, from, to));
     }
 
     /**
-     * Converts a one-based task number to a valid array index.
+     * Converts a one-based task number to a valid list index.
      */
     private static int parseTaskIndex(String arguments, int taskCount) throws AnacondaException {
         int taskNumber;
@@ -157,15 +164,11 @@ public class Anaconda {
     }
 
     /**
-     * Stores a task after checking that the fixed-size list has room.
+     * Stores a task and prints the updated list size.
      */
-    private static int addTask(Task[] tasks, int taskCount, Task task) throws AnacondaException {
-        if (taskCount >= tasks.length) {
-            throw new AnacondaException("The task list is full.");
-        }
-        tasks[taskCount] = task;
-        printTaskAdded(task, taskCount + 1);
-        return taskCount + 1;
+    private static void addTask(ArrayList<Task> tasks, Task task) {
+        tasks.add(task);
+        printTaskAdded(task, tasks.size());
     }
 
     /** Ensures a task description is present. */

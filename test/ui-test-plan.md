@@ -1,4 +1,4 @@
-# Level 5 Console UI Test Plan
+# Level 6 Console UI Test Plan
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
@@ -12,7 +12,7 @@
 
 ### Aim
 
-Verify that valid ToDo, Deadline, and Event commands still work after exception handling is introduced.
+Verify that valid ToDo, Deadline, and Event commands still work after moving task storage to a Java collection.
 
 ### Inputs
 
@@ -56,6 +56,88 @@ Your list:
 1.[T][ ] borrow book
 2.[D][ ] return book (by: Sunday)
 3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+## Test case: TC04 - Delete tasks and renumber the list
+
+### Aim
+
+Verify that deleting valid tasks reports the removed task, updates the task count, and closes numbering gaps, while invalid delete commands leave the list unchanged.
+
+### Inputs
+
+```text
+todo read book
+deadline return book /by Sunday
+event project meeting /from Mon /to 4pm
+delete 2
+list
+delete 3
+delete two
+delete 0
+delete 1
+list
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] read book
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] return book (by: Sunday)
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [E][ ] project meeting (from: Mon to: 4pm)
+Now you have 3 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Noted. I've removed this task:
+  [D][ ] return book (by: Sunday)
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Your list:
+1.[T][ ] read book
+2.[E][ ] project meeting (from: Mon to: 4pm)
+____________________________________________________________
+____________________________________________________________
+Oops! Task 3 does not exist.
+____________________________________________________________
+____________________________________________________________
+Oops! Please provide one task number.
+____________________________________________________________
+____________________________________________________________
+Oops! Task 0 does not exist.
+____________________________________________________________
+____________________________________________________________
+Noted. I've removed this task:
+  [T][ ] read book
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Your list:
+1.[E][ ] project meeting (from: Mon to: 4pm)
 ____________________________________________________________
 ____________________________________________________________
 Alright, until next time.
