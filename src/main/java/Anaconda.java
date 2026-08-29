@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 
 /**
@@ -63,47 +64,60 @@ public class Anaconda {
         }
 
         String[] inputParts = input.split("\\s+", 2);
-        String command = inputParts[0].toLowerCase();
+        Command command = parseCommand(inputParts[0]);
         String arguments = inputParts.length == 2 ? inputParts[1].trim() : "";
 
         switch (command) {
-        case "list":
+        case LIST:
             requireNoArguments(arguments, "list");
             System.out.println("Your list:");
             System.out.print(Task.displayList(tasks));
             break;
-        case "mark":
+        case MARK:
             int markIndex = parseTaskIndex(arguments, tasks.size());
             tasks.get(markIndex).markAsDone();
             System.out.println("Marked it done for you:");
             System.out.println("  " + tasks.get(markIndex));
             break;
-        case "unmark":
+        case UNMARK:
             int unmarkIndex = parseTaskIndex(arguments, tasks.size());
             tasks.get(unmarkIndex).markAsUndone();
             System.out.println("Really? Unmarked? Alright . . .");
             System.out.println("  " + tasks.get(unmarkIndex));
             break;
-        case "delete":
+        case DELETE:
             int deleteIndex = parseTaskIndex(arguments, tasks.size());
             Task removedTask = tasks.remove(deleteIndex);
             System.out.println("Noted. I've removed this task:");
             System.out.println("  " + removedTask);
             System.out.println("Now you have " + tasks.size() + " tasks in the list.");
             break;
-        case "todo":
+        case TODO:
             requireDescription(arguments, "todo");
             addTask(tasks, new ToDo(arguments));
             break;
-        case "deadline":
+        case DEADLINE:
             addDeadline(tasks, arguments);
             break;
-        case "event":
+        case EVENT:
             addEvent(tasks, arguments);
             break;
-        case "bye":
+        case BYE:
             throw new AnacondaException("The bye command cannot have extra text.");
-        default:
+        }
+    }
+
+    /**
+     * Converts a command word into its corresponding enum value.
+     *
+     * @param commandWord command word entered by the user
+     * @return matching command
+     * @throws AnacondaException if the command word is not supported
+     */
+    private static Command parseCommand(String commandWord) throws AnacondaException {
+        try {
+            return Command.valueOf(commandWord.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
             throw new AnacondaException("I don't recognize that command.");
         }
     }

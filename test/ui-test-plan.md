@@ -1,8 +1,8 @@
-# Level 6 Console UI Test Plan
+# Level 6 and A-Enums Console UI Test Plan
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
-- Build command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\javac.exe -d out\test-classes src\main\java\Anaconda.java src\main\java\AnacondaException.java src\main\java\Task.java src\main\java\ToDo.java src\main\java\Deadline.java src\main\java\Event.java`
+- Build command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\javac.exe -d out\test-classes src\main\java\Anaconda.java src\main\java\AnacondaException.java src\main\java\Command.java src\main\java\Task.java src\main\java\ToDo.java src\main\java\Deadline.java src\main\java\Event.java`
 - Launch command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\java.exe -cp out\test-classes Anaconda`
 - Process timeout: 10 seconds per test case
 - Comparison: normalize CRLF/LF line endings and one final newline only
@@ -148,7 +148,7 @@ ____________________________________________________________
 
 ### Aim
 
-Verify that empty and unknown commands, invalid task numbers, and extra arguments produce friendly errors without changing valid task state.
+Verify that the command enum rejects unknown commands and that invalid task numbers and extra arguments produce friendly errors without changing valid task state.
 
 ### Inputs
 
