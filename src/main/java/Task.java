@@ -28,6 +28,24 @@ public class Task {
     }
 
     /**
+     * Returns the description used to identify this task.
+     *
+     * @return task description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Reports whether this task has been completed.
+     *
+     * @return {@code true} if the task is done
+     */
+    public boolean isDone() {
+        return isDone;
+    }
+
+    /**
      * Formats all stored tasks as a numbered list.
      *
      * @param tasks tasks to format

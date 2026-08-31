@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
@@ -7,6 +9,7 @@ import java.util.Scanner;
  */
 public class Anaconda {
     private static final String LINE = "____________________________________________________________";
+    private static final Path DATA_FILE = Path.of("data", "anaconda.txt");
 
     /**
      * Starts the chatbot and keeps accepting commands until the user enters {@code bye}.
@@ -14,7 +17,8 @@ public class Anaconda {
      * @param args command-line arguments, which are not used
      */
     public static void main(String[] args) {
-        ArrayList<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage(DATA_FILE);
+        ArrayList<Task> tasks = loadTasks(storage);
 
         String banner =
                 "    _    _   _    _    ____ ___  _   _ ____    _\n"
@@ -38,7 +42,7 @@ public class Anaconda {
 
             System.out.println(LINE);
             try {
-                handleCommand(input, tasks);
+                handleCommand(input, tasks, storage);
             } catch (AnacondaException exception) {
                 System.out.println("Oops! " + exception.getMessage());
             }
@@ -56,9 +60,10 @@ public class Anaconda {
      *
      * @param input complete input entered by the user
      * @param tasks list containing the current tasks
-     * @throws AnacondaException if the command or its arguments are invalid
+     * @param storage storage manager used to save task changes
+     * @throws AnacondaException if the command or its arguments are invalid, or a change cannot be saved
      */
-    private static void handleCommand(String input, ArrayList<Task> tasks) throws AnacondaException {
+    private static void handleCommand(String input, ArrayList<Task> tasks, Storage storage) throws AnacondaException {
         if (input.isEmpty()) {
             throw new AnacondaException("Please enter a command.");
         }
@@ -76,34 +81,59 @@ public class Anaconda {
         case MARK:
             int markIndex = parseTaskIndex(arguments, tasks.size());
             tasks.get(markIndex).markAsDone();
+            saveTasks(storage, tasks);
             System.out.println("Marked it done for you:");
             System.out.println("  " + tasks.get(markIndex));
             break;
         case UNMARK:
             int unmarkIndex = parseTaskIndex(arguments, tasks.size());
             tasks.get(unmarkIndex).markAsUndone();
+            saveTasks(storage, tasks);
             System.out.println("Really? Unmarked? Alright . . .");
             System.out.println("  " + tasks.get(unmarkIndex));
             break;
         case DELETE:
             int deleteIndex = parseTaskIndex(arguments, tasks.size());
             Task removedTask = tasks.remove(deleteIndex);
+            saveTasks(storage, tasks);
             System.out.println("Noted. I've removed this task:");
             System.out.println("  " + removedTask);
             System.out.println("Now you have " + tasks.size() + " tasks in the list.");
             break;
         case TODO:
             requireDescription(arguments, "todo");
-            addTask(tasks, new ToDo(arguments));
+            addTask(tasks, new ToDo(arguments), storage);
             break;
         case DEADLINE:
-            addDeadline(tasks, arguments);
+            addDeadline(tasks, arguments, storage);
             break;
         case EVENT:
-            addEvent(tasks, arguments);
+            addEvent(tasks, arguments, storage);
             break;
         case BYE:
             throw new AnacondaException("The bye command cannot have extra text.");
+        }
+    }
+
+    /**
+     * Loads saved tasks before the command loop starts. If the file cannot be
+     * read, Anaconda starts with an empty list and explains the problem.
+     */
+    private static ArrayList<Task> loadTasks(Storage storage) {
+        try {
+            return storage.loadTasks();
+        } catch (IOException exception) {
+            System.out.println("Oops! I couldn't load your saved tasks.");
+            return new ArrayList<>();
+        }
+    }
+
+    /** Saves the current task list and converts file errors into user-facing errors. */
+    private static void saveTasks(Storage storage, ArrayList<Task> tasks) throws AnacondaException {
+        try {
+            storage.saveTasks(tasks);
+        } catch (IOException exception) {
+            throw new AnacondaException("I couldn't save your task list.");
         }
     }
 
@@ -125,7 +155,8 @@ public class Anaconda {
     /**
      * Parses and adds a deadline command's arguments.
      */
-    private static void addDeadline(ArrayList<Task> tasks, String arguments) throws AnacondaException {
+    private static void addDeadline(ArrayList<Task> tasks, String arguments, Storage storage)
+            throws AnacondaException {
         int byPosition = arguments.indexOf("/by");
         if (byPosition < 0) {
             throw new AnacondaException("A deadline needs '/by' followed by a date or time.");
@@ -137,13 +168,14 @@ public class Anaconda {
         if (by.isEmpty()) {
             throw new AnacondaException("A deadline needs a date or time after '/by'.");
         }
-        addTask(tasks, new Deadline(description, by));
+        addTask(tasks, new Deadline(description, by), storage);
     }
 
     /**
      * Parses and adds an event command's arguments.
      */
-    private static void addEvent(ArrayList<Task> tasks, String arguments) throws AnacondaException {
+    private static void addEvent(ArrayList<Task> tasks, String arguments, Storage storage)
+            throws AnacondaException {
         int fromPosition = arguments.indexOf("/from");
         int toPosition = fromPosition < 0 ? -1 : arguments.indexOf("/to", fromPosition + "/from".length());
         if (fromPosition < 0 || toPosition < 0) {
@@ -157,7 +189,7 @@ public class Anaconda {
         if (from.isEmpty() || to.isEmpty()) {
             throw new AnacondaException("An event needs times after both '/from' and '/to'.");
         }
-        addTask(tasks, new Event(description, from, to));
+        addTask(tasks, new Event(description, from, to), storage);
     }
 
     /**
@@ -180,8 +212,9 @@ public class Anaconda {
     /**
      * Stores a task and prints the updated list size.
      */
-    private static void addTask(ArrayList<Task> tasks, Task task) {
+    private static void addTask(ArrayList<Task> tasks, Task task, Storage storage) throws AnacondaException {
         tasks.add(task);
+        saveTasks(storage, tasks);
         printTaskAdded(task, tasks.size());
     }
 
