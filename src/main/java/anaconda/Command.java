@@ -12,5 +12,7 @@ public enum Command {
     TODO,
     DEADLINE,
     EVENT,
+    BY,
+    FROM,
     BYE
 }

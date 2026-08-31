@@ -1,45 +1,53 @@
 package anaconda;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 /**
  * Represents a task that occurs between specified start and end times.
  */
 public class Event extends Task {
-    private final String from;
-    private final String to;
+    private static final DateTimeFormatter DISPLAY_FORMATTER =
+            DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH);
+
+    private final LocalDate from;
+    private final LocalDate to;
 
     /**
-     * Creates an Event with its description, start, and end text.
+     * Creates an Event with its description, start date, and end date.
      *
      * @param description Description of the task.
-     * @param from Start text supplied by the user.
-     * @param to End text supplied by the user.
+     * @param from Start date.
+     * @param to End date.
      */
-    public Event(String description, String from, String to) {
+    public Event(String description, LocalDate from, LocalDate to) {
         super(description);
         this.from = from;
         this.to = to;
     }
 
     /**
-     * Returns the event's starting-time text.
+     * Returns the event's start date.
      *
-     * @return Starting-time text.
+     * @return Start date.
      */
-    public String getFrom() {
+    public LocalDate getFrom() {
         return from;
     }
 
     /**
-     * Returns the event's ending-time text.
+     * Returns the event's end date.
      *
-     * @return Ending-time text.
+     * @return End date.
      */
-    public String getTo() {
+    public LocalDate getTo() {
         return to;
     }
 
     @Override
     public String toString() {
-        return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
+        return "[E]" + super.toString() + " (from: " + from.format(DISPLAY_FORMATTER)
+                + " to: " + to.format(DISPLAY_FORMATTER) + ")";
     }
 }

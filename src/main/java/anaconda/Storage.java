@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,8 +94,8 @@ public class Storage {
         String[] fields = line.split(" \\| ", -1);
         Task task = switch (fields[0]) {
         case "T" -> new ToDo(fields[2]);
-        case "D" -> new Deadline(fields[2], fields[3]);
-        case "E" -> new Event(fields[2], fields[3], fields[4]);
+        case "D" -> new Deadline(fields[2], LocalDate.parse(fields[3]));
+        case "E" -> new Event(fields[2], LocalDate.parse(fields[3]), LocalDate.parse(fields[4]));
         default -> throw new IllegalArgumentException("Unknown task type: " + fields[0]);
         };
 

@@ -1,4 +1,4 @@
-# Level 7 and Clear Command Console UI Test Plan
+# Level 8 Console UI Test Plan
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
@@ -20,8 +20,8 @@ Verify that valid ToDo, Deadline, and Event commands still work after moving tas
 
 ```text
 todo borrow book
-deadline return book /by Sunday
-event project meeting /from Mon 2pm /to 4pm
+deadline return book /by 2019-10-15
+event project meeting /from 2019-10-15 /to 2019-10-16
 list
 bye
 ```
@@ -45,19 +45,19 @@ Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [D][ ] return book (by: Sunday)
+  [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [E][ ] project meeting (from: Mon 2pm to: 4pm)
+  [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 3 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Your list:
 1.[T][ ] borrow book
-2.[D][ ] return book (by: Sunday)
-3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+2.[D][ ] return book (by: Oct 15 2019)
+3.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
 Alright, until next time.
@@ -74,8 +74,8 @@ Verify that deleting valid tasks reports the removed task, updates the task coun
 
 ```text
 todo read book
-deadline return book /by Sunday
-event project meeting /from Mon /to 4pm
+deadline return book /by 2019-10-15
+event project meeting /from 2019-10-15 /to 2019-10-16
 delete 2
 list
 delete 3
@@ -105,23 +105,23 @@ Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [D][ ] return book (by: Sunday)
+  [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [E][ ] project meeting (from: Mon to: 4pm)
+  [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 3 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Noted. I've removed this task:
-  [D][ ] return book (by: Sunday)
+  [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Your list:
 1.[T][ ] read book
-2.[E][ ] project meeting (from: Mon to: 4pm)
+2.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
 Oops! Task 3 does not exist.
@@ -139,7 +139,7 @@ Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Your list:
-1.[E][ ] project meeting (from: Mon to: 4pm)
+1.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
 Alright, until next time.
@@ -239,10 +239,11 @@ Verify that missing deadline and event fields are rejected and that later valid 
 ```text
 deadline return book
 deadline return book /by
-deadline return book /by Sunday
-event project meeting /from Mon
-event project meeting /from /to 4pm
-event project meeting /from Mon /to 4pm
+deadline return book /by 2019-10-15
+deadline impossible date /by 2019-02-30
+event project meeting /from 2019-10-15
+event project meeting /from /to 2019-10-16
+event project meeting /from 2019-10-15 /to 2019-10-16
 list
 bye
 ```
@@ -267,8 +268,11 @@ Oops! A deadline needs a date or time after '/by'.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [D][ ] return book (by: Sunday)
+  [D][ ] return book (by: Oct 15 2019)
 Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Oops! Dates must use yyyy-MM-dd or dd-MM-yyyy.
 ____________________________________________________________
 ____________________________________________________________
 Oops! An event needs both '/from' and '/to' times.
@@ -278,13 +282,13 @@ Oops! An event needs times after both '/from' and '/to'.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [E][ ] project meeting (from: Mon to: 4pm)
+  [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Your list:
-1.[D][ ] return book (by: Sunday)
-2.[E][ ] project meeting (from: Mon to: 4pm)
+1.[D][ ] return book (by: Oct 15 2019)
+2.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
 Alright, until next time.
@@ -301,8 +305,8 @@ Verify that adding all three task types and marking a task creates a new data fo
 
 ```text
 todo borrow book
-deadline return book /by Sunday
-event project meeting /from Mon 2pm /to 4pm
+deadline return book /by 2019-10-15
+event project meeting /from 2019-10-15 /to 2019-10-16
 mark 2
 bye
 ```
@@ -326,17 +330,17 @@ Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [D][ ] return book (by: Sunday)
+  [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [E][ ] project meeting (from: Mon 2pm to: 4pm)
+  [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 3 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Marked it done for you:
-  [D][X] return book (by: Sunday)
+  [D][X] return book (by: Oct 15 2019)
 ____________________________________________________________
 ____________________________________________________________
 Alright, until next time.
@@ -347,8 +351,141 @@ ____________________________________________________________
 
 ```text
 T | 0 | borrow book
-D | 1 | return book | Sunday
-E | 0 | project meeting | Mon 2pm | 4pm
+D | 1 | return book | 2019-10-15
+E | 0 | project meeting | 2019-10-15 | 2019-10-16
+```
+
+## Test case: TC09 - Filter tasks by ending date
+
+### Aim
+
+Verify inclusive by/from filtering, exact sharp filtering, day-first query dates, and exclusion of undated ToDos.
+
+### Inputs
+
+```text
+deadline old deadline /by 2026-08-18
+deadline exact deadline /by 2026-08-19
+deadline future deadline /by 2026-08-20
+event exact-ending event /from 2026-08-17 /to 2026-08-19
+event future-ending event /from 2026-08-18 /to 2026-08-21
+todo undated task
+/by 19-08-2026
+/by 19-08-2026 sharp
+/from 19-08-2026
+/from 19-08-2026 sharp
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] old deadline (by: Aug 18 2026)
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] exact deadline (by: Aug 19 2026)
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] future deadline (by: Aug 20 2026)
+Now you have 3 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+Now you have 4 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [E][ ] future-ending event (from: Aug 18 2026 to: Aug 21 2026)
+Now you have 5 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] undated task
+Now you have 6 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Matching tasks:
+1.[D][ ] old deadline (by: Aug 18 2026)
+2.[D][ ] exact deadline (by: Aug 19 2026)
+3.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+____________________________________________________________
+____________________________________________________________
+Matching tasks:
+1.[D][ ] exact deadline (by: Aug 19 2026)
+2.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+____________________________________________________________
+____________________________________________________________
+Matching tasks:
+1.[D][ ] exact deadline (by: Aug 19 2026)
+2.[D][ ] future deadline (by: Aug 20 2026)
+3.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+4.[E][ ] future-ending event (from: Aug 18 2026 to: Aug 21 2026)
+____________________________________________________________
+____________________________________________________________
+Matching tasks:
+1.[D][ ] exact deadline (by: Aug 19 2026)
+2.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+## Test case: TC10 - Reject malformed date filters
+
+### Aim
+
+Verify that missing dates, unsupported modifiers, and invalid dates produce friendly errors without ending the session.
+
+### Inputs
+
+```text
+/by
+/by 19-08-2026 now
+/from not-a-date
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Oops! Use '/by DATE' or '/by DATE sharp'.
+____________________________________________________________
+____________________________________________________________
+Oops! Use '/by DATE' or '/by DATE sharp'.
+____________________________________________________________
+____________________________________________________________
+Oops! Dates must use yyyy-MM-dd or dd-MM-yyyy.
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
 ```
 
 ## Test case: TC07 - Confirm clearing the task list
@@ -361,7 +498,7 @@ Verify that the clear command asks for confirmation, removes every task only aft
 
 ```text
 todo borrow book
-deadline return book /by Sunday
+deadline return book /by 2019-10-15
 clear
 yes
 list
@@ -387,7 +524,7 @@ Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
 Got it. I've added this task:
-  [D][ ] return book (by: Sunday)
+  [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
@@ -494,12 +631,12 @@ What do you want?
 ____________________________________________________________
 Your list:
 1.[T][ ] borrow book
-2.[D][X] return book (by: Sunday)
-3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+2.[D][X] return book (by: Oct 15 2019)
+3.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
 Really? Unmarked? Alright . . .
-  [D][ ] return book (by: Sunday)
+  [D][ ] return book (by: Oct 15 2019)
 ____________________________________________________________
 ____________________________________________________________
 Noted. I've removed this task:
@@ -514,6 +651,6 @@ ____________________________________________________________
 ### Expected data file
 
 ```text
-D | 0 | return book | Sunday
-E | 0 | project meeting | Mon 2pm | 4pm
+D | 0 | return book | 2019-10-15
+E | 0 | project meeting | 2019-10-15 | 2019-10-16
 ```
