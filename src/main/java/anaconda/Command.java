@@ -1,3 +1,5 @@
+package anaconda;
+
 /**
  * Represents a command supported by the Anaconda chatbot.
  */

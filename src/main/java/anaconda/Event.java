@@ -1,3 +1,5 @@
+package anaconda;
+
 /**
  * Represents a task that occurs between specified start and end times.
  */
@@ -8,9 +10,9 @@ public class Event extends Task {
     /**
      * Creates an Event with its description, start, and end text.
      *
-     * @param description description of the task
-     * @param from start text supplied by the user
-     * @param to end text supplied by the user
+     * @param description Description of the task.
+     * @param from Start text supplied by the user.
+     * @param to End text supplied by the user.
      */
     public Event(String description, String from, String to) {
         super(description);
@@ -21,7 +23,7 @@ public class Event extends Task {
     /**
      * Returns the event's starting-time text.
      *
-     * @return starting-time text
+     * @return Starting-time text.
      */
     public String getFrom() {
         return from;
@@ -30,7 +32,7 @@ public class Event extends Task {
     /**
      * Returns the event's ending-time text.
      *
-     * @return ending-time text
+     * @return Ending-time text.
      */
     public String getTo() {
         return to;

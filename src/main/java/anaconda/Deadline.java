@@ -1,3 +1,5 @@
+package anaconda;
+
 /**
  * Represents a task that must be completed by a specified time.
  */
@@ -7,8 +9,8 @@ public class Deadline extends Task {
     /**
      * Creates a Deadline with its description and deadline text.
      *
-     * @param description description of the task
-     * @param by deadline text supplied by the user
+     * @param description Description of the task.
+     * @param by Deadline text supplied by the user.
      */
     public Deadline(String description, String by) {
         super(description);
@@ -18,7 +20,7 @@ public class Deadline extends Task {
     /**
      * Returns the deadline text entered by the user.
      *
-     * @return deadline text
+     * @return Deadline text.
      */
     public String getBy() {
         return by;

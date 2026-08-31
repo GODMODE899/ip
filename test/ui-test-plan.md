@@ -2,8 +2,8 @@
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
-- Build command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\javac.exe -d out\test-classes src\main\java\*.java`
-- Launch command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\java.exe -cp out\test-classes Anaconda`
+- Build command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\javac.exe -d out\test-classes src\main\java\anaconda\*.java`
+- Launch command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\java.exe -cp out\test-classes anaconda.Anaconda`
 - Process timeout: 10 seconds per test case
 - Comparison: normalize CRLF/LF line endings and one final newline only
 - Process isolation: launch a fresh program process for every test case
