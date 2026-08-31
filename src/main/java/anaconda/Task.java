@@ -1,3 +1,5 @@
+package anaconda;
+
 import java.util.List;
 
 /**
@@ -10,7 +12,7 @@ public class Task {
     /**
      * Creates an incomplete task with the given description.
      *
-     * @param description description of the task
+     * @param description Description of the task.
      */
     public Task(String description) {
         this.description = description;
@@ -28,10 +30,28 @@ public class Task {
     }
 
     /**
+     * Returns the description used to identify this task.
+     *
+     * @return Task description.
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Reports whether this task has been completed.
+     *
+     * @return {@code true} if the task is done.
+     */
+    public boolean isDone() {
+        return isDone;
+    }
+
+    /**
      * Formats all stored tasks as a numbered list.
      *
-     * @param tasks tasks to format
-     * @return numbered task list
+     * @param tasks Tasks to format.
+     * @return Numbered task list.
      */
     public static String displayList(List<Task> tasks) {
         StringBuilder output = new StringBuilder();

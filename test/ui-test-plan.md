@@ -1,12 +1,14 @@
-# Level 6 and A-Enums Console UI Test Plan
+# Level 7 and Clear Command Console UI Test Plan
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
-- Build command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\javac.exe -d out\test-classes src\main\java\Anaconda.java src\main\java\AnacondaException.java src\main\java\Command.java src\main\java\Task.java src\main\java\ToDo.java src\main\java\Deadline.java src\main\java\Event.java`
-- Launch command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\java.exe -cp out\test-classes Anaconda`
+- Build command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\javac.exe -d out\test-classes src\main\java\anaconda\*.java`
+- Launch command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\java.exe -cp out\test-classes anaconda.Anaconda`
 - Process timeout: 10 seconds per test case
 - Comparison: normalize CRLF/LF line endings and one final newline only
 - Process isolation: launch a fresh program process for every test case
+- Storage isolation: run each independent case in a clean `_temp/ui-tests/TCxx` folder with an
+  absolute classpath; TC06 reuses TC05's folder to verify loading in a fresh process
 
 ## Test case: TC01 - Add and list all task types
 
@@ -287,4 +289,231 @@ ____________________________________________________________
 ____________________________________________________________
 Alright, until next time.
 ____________________________________________________________
+```
+
+## Test case: TC05 - Save tasks and completion status
+
+### Aim
+
+Verify that adding all three task types and marking a task creates a new data folder and saves the latest task state.
+
+### Inputs
+
+```text
+todo borrow book
+deadline return book /by Sunday
+event project meeting /from Mon 2pm /to 4pm
+mark 2
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] borrow book
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] return book (by: Sunday)
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [E][ ] project meeting (from: Mon 2pm to: 4pm)
+Now you have 3 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Marked it done for you:
+  [D][X] return book (by: Sunday)
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+### Expected data file
+
+```text
+T | 0 | borrow book
+D | 1 | return book | Sunday
+E | 0 | project meeting | Mon 2pm | 4pm
+```
+
+## Test case: TC07 - Confirm clearing the task list
+
+### Aim
+
+Verify that the clear command asks for confirmation, removes every task only after a yes response, and saves the empty list.
+
+### Inputs
+
+```text
+todo borrow book
+deadline return book /by Sunday
+clear
+yes
+list
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] borrow book
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] return book (by: Sunday)
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+You sure? (yes/no)
+____________________________________________________________
+____________________________________________________________
+Fine. Everything's gone.
+____________________________________________________________
+____________________________________________________________
+Your list:
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+### Expected data file
+
+```text
+
+```
+
+## Test case: TC08 - Cancel clearing the task list
+
+### Aim
+
+Verify that any response other than yes cancels the clear command and leaves the saved task list unchanged.
+
+### Inputs
+
+```text
+todo borrow book
+clear
+no
+list
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] borrow book
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+You sure? (yes/no)
+____________________________________________________________
+____________________________________________________________
+That's not a yes. Kept your tasks.
+____________________________________________________________
+____________________________________________________________
+Your list:
+1.[T][ ] borrow book
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+### Expected data file
+
+```text
+T | 0 | borrow book
+```
+
+## Test case: TC06 - Load and update saved tasks
+
+### Aim
+
+Verify that a fresh chatbot process restores task types and completion status, then persists an unmark and deletion.
+
+### Inputs
+
+```text
+list
+unmark 2
+delete 1
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Your list:
+1.[T][ ] borrow book
+2.[D][X] return book (by: Sunday)
+3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+____________________________________________________________
+____________________________________________________________
+Really? Unmarked? Alright . . .
+  [D][ ] return book (by: Sunday)
+____________________________________________________________
+____________________________________________________________
+Noted. I've removed this task:
+  [T][ ] borrow book
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+### Expected data file
+
+```text
+D | 0 | return book | Sunday
+E | 0 | project meeting | Mon 2pm | 4pm
 ```

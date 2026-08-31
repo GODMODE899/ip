@@ -1,3 +1,5 @@
+package anaconda;
+
 /**
  * Represents a command supported by the Anaconda chatbot.
  */
@@ -6,6 +8,7 @@ public enum Command {
     MARK,
     UNMARK,
     DELETE,
+    CLEAR,
     TODO,
     DEADLINE,
     EVENT,
