@@ -35,8 +35,21 @@ public class Anaconda {
         System.out.println("What do you want?");
 
         Scanner scanner = new Scanner(System.in);
+        boolean isAwaitingClearConfirmation = false;
         while (true) {
             String input = scanner.nextLine().trim();
+
+            if (isAwaitingClearConfirmation) {
+                System.out.println(LINE);
+                try {
+                    clearTasksIfConfirmed(input, tasks, storage);
+                } catch (AnacondaException exception) {
+                    System.out.println("Oops! " + exception.getMessage());
+                }
+                System.out.println(LINE);
+                isAwaitingClearConfirmation = false;
+                continue;
+            }
 
             if (input.equalsIgnoreCase("bye")) {
                 break;
@@ -44,7 +57,7 @@ public class Anaconda {
 
             System.out.println(LINE);
             try {
-                handleCommand(input, tasks, storage);
+                isAwaitingClearConfirmation = handleCommand(input, tasks, storage);
             } catch (AnacondaException exception) {
                 System.out.println("Oops! " + exception.getMessage());
             }
@@ -63,9 +76,10 @@ public class Anaconda {
      * @param input Complete input entered by the user.
      * @param tasks List containing the current tasks.
      * @param storage Storage manager used to save task changes.
+     * @return {@code true} if the next input should confirm a clear command.
      * @throws AnacondaException If the command or its arguments are invalid, or a change cannot be saved.
      */
-    private static void handleCommand(String input, ArrayList<Task> tasks, Storage storage)
+    private static boolean handleCommand(String input, ArrayList<Task> tasks, Storage storage)
             throws AnacondaException {
         if (input.isEmpty()) {
             throw new AnacondaException("Please enter a command.");
@@ -103,6 +117,10 @@ public class Anaconda {
             System.out.println("  " + removedTask);
             System.out.println("Now you have " + tasks.size() + " tasks in the list.");
             break;
+        case CLEAR:
+            requireNoArguments(arguments, "clear");
+            System.out.println("You sure? (yes/no)");
+            return true;
         case TODO:
             requireDescription(arguments, "todo");
             addTask(tasks, new ToDo(arguments), storage);
@@ -116,6 +134,27 @@ public class Anaconda {
         case BYE:
             throw new AnacondaException("The bye command cannot have extra text.");
         }
+        return false;
+    }
+
+    /**
+     * Clears and saves the task list only when the user explicitly confirms.
+     *
+     * @param confirmation Confirmation entered by the user.
+     * @param tasks List to clear.
+     * @param storage Storage manager used to save the empty list.
+     * @throws AnacondaException If the cleared task list cannot be saved.
+     */
+    private static void clearTasksIfConfirmed(String confirmation, ArrayList<Task> tasks, Storage storage)
+            throws AnacondaException {
+        if (!confirmation.equalsIgnoreCase("yes")) {
+            System.out.println("That's not a yes. Kept your tasks.");
+            return;
+        }
+
+        tasks.clear();
+        saveTasks(storage, tasks);
+        System.out.println("Fine. Everything's gone.");
     }
 
     /**

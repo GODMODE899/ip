@@ -1,4 +1,4 @@
-# Level 7 Console UI Test Plan
+# Level 7 and Clear Command Console UI Test Plan
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
@@ -349,6 +349,119 @@ ____________________________________________________________
 T | 0 | borrow book
 D | 1 | return book | Sunday
 E | 0 | project meeting | Mon 2pm | 4pm
+```
+
+## Test case: TC07 - Confirm clearing the task list
+
+### Aim
+
+Verify that the clear command asks for confirmation, removes every task only after a yes response, and saves the empty list.
+
+### Inputs
+
+```text
+todo borrow book
+deadline return book /by Sunday
+clear
+yes
+list
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] borrow book
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] return book (by: Sunday)
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+You sure? (yes/no)
+____________________________________________________________
+____________________________________________________________
+Fine. Everything's gone.
+____________________________________________________________
+____________________________________________________________
+Your list:
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+### Expected data file
+
+```text
+
+```
+
+## Test case: TC08 - Cancel clearing the task list
+
+### Aim
+
+Verify that any response other than yes cancels the clear command and leaves the saved task list unchanged.
+
+### Inputs
+
+```text
+todo borrow book
+clear
+no
+list
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] borrow book
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+You sure? (yes/no)
+____________________________________________________________
+____________________________________________________________
+That's not a yes. Kept your tasks.
+____________________________________________________________
+____________________________________________________________
+Your list:
+1.[T][ ] borrow book
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+### Expected data file
+
+```text
+T | 0 | borrow book
 ```
 
 ## Test case: TC06 - Load and update saved tasks
