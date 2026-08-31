@@ -272,7 +272,7 @@ Got it. I've added this task:
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Dates must use yyyy-MM-dd, like 2019-10-15.
+Oops! Dates must use yyyy-MM-dd or dd-MM-yyyy.
 ____________________________________________________________
 ____________________________________________________________
 Oops! An event needs both '/from' and '/to' times.
@@ -353,6 +353,139 @@ ____________________________________________________________
 T | 0 | borrow book
 D | 1 | return book | 2019-10-15
 E | 0 | project meeting | 2019-10-15 | 2019-10-16
+```
+
+## Test case: TC09 - Filter tasks by ending date
+
+### Aim
+
+Verify inclusive by/from filtering, exact sharp filtering, day-first query dates, and exclusion of undated ToDos.
+
+### Inputs
+
+```text
+deadline old deadline /by 2026-08-18
+deadline exact deadline /by 2026-08-19
+deadline future deadline /by 2026-08-20
+event exact-ending event /from 2026-08-17 /to 2026-08-19
+event future-ending event /from 2026-08-18 /to 2026-08-21
+todo undated task
+/by 19-08-2026
+/by 19-08-2026 sharp
+/from 19-08-2026
+/from 19-08-2026 sharp
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] old deadline (by: Aug 18 2026)
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] exact deadline (by: Aug 19 2026)
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] future deadline (by: Aug 20 2026)
+Now you have 3 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+Now you have 4 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [E][ ] future-ending event (from: Aug 18 2026 to: Aug 21 2026)
+Now you have 5 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] undated task
+Now you have 6 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Matching tasks:
+1.[D][ ] old deadline (by: Aug 18 2026)
+2.[D][ ] exact deadline (by: Aug 19 2026)
+3.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+____________________________________________________________
+____________________________________________________________
+Matching tasks:
+1.[D][ ] exact deadline (by: Aug 19 2026)
+2.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+____________________________________________________________
+____________________________________________________________
+Matching tasks:
+1.[D][ ] exact deadline (by: Aug 19 2026)
+2.[D][ ] future deadline (by: Aug 20 2026)
+3.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+4.[E][ ] future-ending event (from: Aug 18 2026 to: Aug 21 2026)
+____________________________________________________________
+____________________________________________________________
+Matching tasks:
+1.[D][ ] exact deadline (by: Aug 19 2026)
+2.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+## Test case: TC10 - Reject malformed date filters
+
+### Aim
+
+Verify that missing dates, unsupported modifiers, and invalid dates produce friendly errors without ending the session.
+
+### Inputs
+
+```text
+/by
+/by 19-08-2026 now
+/from not-a-date
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Oops! Use '/by DATE' or '/by DATE sharp'.
+____________________________________________________________
+____________________________________________________________
+Oops! Use '/by DATE' or '/by DATE sharp'.
+____________________________________________________________
+____________________________________________________________
+Oops! Dates must use yyyy-MM-dd or dd-MM-yyyy.
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
 ```
 
 ## Test case: TC07 - Confirm clearing the task list

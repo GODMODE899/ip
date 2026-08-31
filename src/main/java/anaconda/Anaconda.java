@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
@@ -14,6 +16,8 @@ import java.util.Scanner;
 public class Anaconda {
     private static final String LINE = "____________________________________________________________";
     private static final Path DATA_FILE = Path.of("data", "anaconda.txt");
+    private static final DateTimeFormatter DAY_FIRST_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
 
     /**
      * Starts the chatbot and keeps accepting commands until the user enters {@code bye}.
@@ -133,6 +137,10 @@ public class Anaconda {
         case EVENT:
             addEvent(tasks, arguments, storage);
             break;
+        case BY:
+        case FROM:
+            displayTasksByDate(tasks, arguments, command);
+            break;
         case BYE:
             throw new AnacondaException("The bye command cannot have extra text.");
         }
@@ -199,7 +207,11 @@ public class Anaconda {
      */
     private static Command parseCommand(String commandWord) throws AnacondaException {
         try {
-            return Command.valueOf(commandWord.toUpperCase(Locale.ROOT));
+            return switch (commandWord.toUpperCase(Locale.ROOT)) {
+            case "/BY" -> Command.BY;
+            case "/FROM" -> Command.FROM;
+            default -> Command.valueOf(commandWord.toUpperCase(Locale.ROOT));
+            };
         } catch (IllegalArgumentException exception) {
             throw new AnacondaException("I don't recognize that command.");
         }
@@ -261,18 +273,79 @@ public class Anaconda {
     }
 
     /**
-     * Parses a date written in the required ISO format.
+     * Parses a date written in either supported format.
      *
      * @param dateText Date entered by the user.
      * @return Parsed date.
-     * @throws AnacondaException If the text is not a valid {@code yyyy-MM-dd} date.
+     * @throws AnacondaException If the text is not a valid supported date.
      */
     private static LocalDate parseDate(String dateText) throws AnacondaException {
         try {
             return LocalDate.parse(dateText);
         } catch (DateTimeParseException exception) {
-            throw new AnacondaException("Dates must use yyyy-MM-dd, like 2019-10-15.");
+            try {
+                return LocalDate.parse(dateText, DAY_FIRST_DATE_FORMATTER);
+            } catch (DateTimeParseException secondException) {
+                throw new AnacondaException("Dates must use yyyy-MM-dd or dd-MM-yyyy.");
+            }
         }
+    }
+
+    /**
+     * Displays dated tasks whose ending dates match the requested range.
+     *
+     * @param tasks Tasks to search.
+     * @param arguments Filter date followed by an optional {@code sharp} keyword.
+     * @param command Direction of the date range.
+     * @throws AnacondaException If the filter arguments or date are invalid.
+     */
+    private static void displayTasksByDate(ArrayList<Task> tasks, String arguments, Command command)
+            throws AnacondaException {
+        String commandWord = command == Command.BY ? "/by" : "/from";
+        String[] filterParts = arguments.split("\\s+");
+        boolean hasValidPartCount = !arguments.isEmpty() && filterParts.length <= 2;
+        boolean isSharp = filterParts.length == 2 && filterParts[1].equalsIgnoreCase("sharp");
+        if (!hasValidPartCount || (filterParts.length == 2 && !isSharp)) {
+            throw new AnacondaException("Use '" + commandWord + " DATE' or '"
+                    + commandWord + " DATE sharp'.");
+        }
+
+        LocalDate filterDate = parseDate(filterParts[0]);
+        ArrayList<Task> matchingTasks = new ArrayList<>();
+        for (Task task : tasks) {
+            LocalDate endDate = getEndDate(task);
+            if (endDate == null) {
+                continue;
+            }
+
+            boolean isMatch = isSharp
+                    ? endDate.equals(filterDate)
+                    : command == Command.BY
+                            ? !endDate.isAfter(filterDate)
+                            : !endDate.isBefore(filterDate);
+            if (isMatch) {
+                matchingTasks.add(task);
+            }
+        }
+
+        System.out.println("Matching tasks:");
+        System.out.print(Task.displayList(matchingTasks));
+    }
+
+    /**
+     * Returns the date on which a dated task ends.
+     *
+     * @param task Task whose ending date is needed.
+     * @return Deadline or event ending date, or {@code null} for an undated task.
+     */
+    private static LocalDate getEndDate(Task task) {
+        if (task instanceof Deadline deadline) {
+            return deadline.getBy();
+        }
+        if (task instanceof Event event) {
+            return event.getTo();
+        }
+        return null;
     }
 
     /**
