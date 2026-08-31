@@ -2,6 +2,8 @@ package anaconda;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
@@ -219,11 +221,12 @@ public class Anaconda {
         }
 
         String description = arguments.substring(0, byPosition).trim();
-        String by = arguments.substring(byPosition + "/by".length()).trim();
+        String byText = arguments.substring(byPosition + "/by".length()).trim();
         requireDescription(description, "deadline");
-        if (by.isEmpty()) {
+        if (byText.isEmpty()) {
             throw new AnacondaException("A deadline needs a date or time after '/by'.");
         }
+        LocalDate by = parseDate(byText);
         addTask(tasks, new Deadline(description, by), storage);
     }
 
@@ -246,13 +249,30 @@ public class Anaconda {
         }
 
         String description = arguments.substring(0, fromPosition).trim();
-        String from = arguments.substring(fromPosition + "/from".length(), toPosition).trim();
-        String to = arguments.substring(toPosition + "/to".length()).trim();
+        String fromText = arguments.substring(fromPosition + "/from".length(), toPosition).trim();
+        String toText = arguments.substring(toPosition + "/to".length()).trim();
         requireDescription(description, "event");
-        if (from.isEmpty() || to.isEmpty()) {
+        if (fromText.isEmpty() || toText.isEmpty()) {
             throw new AnacondaException("An event needs times after both '/from' and '/to'.");
         }
+        LocalDate from = parseDate(fromText);
+        LocalDate to = parseDate(toText);
         addTask(tasks, new Event(description, from, to), storage);
+    }
+
+    /**
+     * Parses a date written in the required ISO format.
+     *
+     * @param dateText Date entered by the user.
+     * @return Parsed date.
+     * @throws AnacondaException If the text is not a valid {@code yyyy-MM-dd} date.
+     */
+    private static LocalDate parseDate(String dateText) throws AnacondaException {
+        try {
+            return LocalDate.parse(dateText);
+        } catch (DateTimeParseException exception) {
+            throw new AnacondaException("Dates must use yyyy-MM-dd, like 2019-10-15.");
+        }
     }
 
     /**
