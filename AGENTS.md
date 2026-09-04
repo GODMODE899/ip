@@ -28,6 +28,19 @@ Unless the user says otherwise, assume that you are assisting a student working 
 
 Ensure that Java 25 is used when running the application or build tasks. On macOS, use `sdk use java 25.0.3.fx-zulu` to switch to Java 25 if needed.
 
+## JUnit testing
+
+The current target is the A-JUnit stretch goal: test all non-trivial public methods of every application class.
+This exceeds the baseline target of testing the highest-value 50% of methods; prioritize complex parsing,
+task operations, and persistence when expanding the suite. These are method-selection goals, not measured
+line-coverage percentages.
+
+After every code change, add or update JUnit tests to maintain this target and run the suite with Java 25.
+Place tests under `src/test/java` in the same package as the class being tested, using `ClassNameTest` and
+`methodUnderTest_scenario_expectedBehavior` names. Test normal behavior, boundaries, and relevant failure cases.
+Use temporary directories for file tests and restore any global streams or locale settings changed by tests.
+See `test/junit-coverage.md` for the current coverage map and Gradle commands.
+
 ## Git
 
 Use lightweight tags unless the user requests an annotated tag.

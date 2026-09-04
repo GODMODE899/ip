@@ -1,7 +1,7 @@
-# Package Organization Console UI Regression Test Plan
+# Console UI Regression Test Plan
 
-Run this unchanged behavior suite after organizing the classes into responsibility-based packages.
-Expected console output and save-file contents must remain identical throughout the refactor.
+Run this behavior suite alongside the JUnit tests after code or test-infrastructure changes.
+For A-JUnit, expected console output and save-file contents remain unchanged.
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
