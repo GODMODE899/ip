@@ -1,11 +1,15 @@
-# Class Extraction Console UI Regression Test Plan
+# Package Organization Console UI Regression Test Plan
 
-Run this unchanged behavior suite after extracting Ui, TaskList, and Parser in separate steps.
+Run this unchanged behavior suite after organizing the classes into responsibility-based packages.
 Expected console output and save-file contents must remain identical throughout the refactor.
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
-- Build command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\javac.exe -d out\test-classes src\main\java\anaconda\*.java`
+- Build commands (PowerShell, with `src/main/java` kept as the source root):
+  ```powershell
+  $javaSources = Get-ChildItem src/main/java -Recurse -Filter *.java | ForEach-Object { $_.FullName }
+  & 'C:\Users\moons\.jdks\ms-25.0.4.1\bin\javac.exe' -d out/test-classes $javaSources
+  ```
 - Launch command: `C:\Users\moons\.jdks\ms-25.0.4.1\bin\java.exe -cp out\test-classes anaconda.Anaconda`
 - Process timeout: 10 seconds per test case
 - Comparison: normalize CRLF/LF line endings and one final newline only

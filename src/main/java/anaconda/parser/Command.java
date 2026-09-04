@@ -1,4 +1,4 @@
-package anaconda;
+package anaconda.parser;
 
 /**
  * Represents a command supported by the Anaconda chatbot.

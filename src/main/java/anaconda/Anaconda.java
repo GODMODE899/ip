@@ -3,6 +3,14 @@ package anaconda;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import anaconda.exception.AnacondaException;
+import anaconda.parser.Command;
+import anaconda.parser.Parser;
+import anaconda.storage.Storage;
+import anaconda.task.Task;
+import anaconda.task.TaskList;
+import anaconda.ui.Ui;
+
 /**
  * Coordinates user interaction, command parsing, task operations, and storage.
  */
