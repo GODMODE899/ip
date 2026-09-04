@@ -1,8 +1,11 @@
-package anaconda;
+package anaconda.task;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import anaconda.exception.AnacondaException;
+import anaconda.parser.Command;
 
 /**
  * Owns the task collection and provides task operations independently of input or storage.

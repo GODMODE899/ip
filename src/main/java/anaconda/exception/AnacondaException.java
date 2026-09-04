@@ -1,4 +1,4 @@
-package anaconda;
+package anaconda.exception;
 
 /**
  * Represents an invalid command or argument supplied to Anaconda.

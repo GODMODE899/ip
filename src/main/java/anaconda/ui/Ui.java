@@ -1,7 +1,9 @@
-package anaconda;
+package anaconda.ui;
 
 import java.util.List;
 import java.util.Scanner;
+
+import anaconda.task.Task;
 
 /**
  * Handles console input and all messages displayed by the chatbot.

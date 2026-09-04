@@ -1,4 +1,4 @@
-package anaconda;
+package anaconda.task;
 
 /**
  * Represents a task without an attached date or time.
