@@ -1,4 +1,7 @@
-# Level 8 Console UI Test Plan
+# Class Extraction Console UI Regression Test Plan
+
+Run this unchanged behavior suite after extracting Ui, TaskList, and Parser in separate steps.
+Expected console output and save-file contents must remain identical throughout the refactor.
 
 - Working directory: repository root
 - Java version: Microsoft OpenJDK 25.0.4.1
@@ -7,7 +10,7 @@
 - Process timeout: 10 seconds per test case
 - Comparison: normalize CRLF/LF line endings and one final newline only
 - Process isolation: launch a fresh program process for every test case
-- Storage isolation: run each independent case in a clean `_temp/ui-tests/TCxx` folder with an
+- Storage isolation: run each independent case in a fresh `_temp/oop-ui-tests-<run>/TCxx` folder with an
   absolute classpath; TC06 reuses TC05's folder to verify loading in a fresh process
 
 ## Test case: TC01 - Add and list all task types

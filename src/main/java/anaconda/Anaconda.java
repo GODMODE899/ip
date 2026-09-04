@@ -2,423 +2,156 @@ package anaconda;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Scanner;
 
 /**
- * Runs the Anaconda chatbot and processes commands entered by the user.
+ * Coordinates user interaction, command parsing, task operations, and storage.
  */
 public class Anaconda {
-    private static final String LINE = "____________________________________________________________";
     private static final Path DATA_FILE = Path.of("data", "anaconda.txt");
-    private static final DateTimeFormatter DAY_FIRST_DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
+
+    private final Storage storage;
+    private final TaskList tasks;
+    private final Ui ui;
+    private final Parser parser;
 
     /**
-     * Starts the chatbot and keeps accepting commands until the user enters {@code bye}.
+     * Creates the chatbot and loads its existing tasks.
+     *
+     * @param filePath Path to the task data file.
+     */
+    public Anaconda(Path filePath) {
+        ui = new Ui();
+        parser = new Parser();
+        storage = new Storage(filePath);
+        tasks = loadTasks();
+    }
+
+    /**
+     * Starts the chatbot using the default relative data path.
      *
      * @param args Command-line arguments, which are not used.
      */
     public static void main(String[] args) {
-        Storage storage = new Storage(DATA_FILE);
-        ArrayList<Task> tasks = loadTasks(storage);
-
-        String banner =
-                "    _    _   _    _    ____ ___  _   _ ____    _\n"
-                        + "   / \\  | \\ | |  / \\  / ___/ _ \\| \\ | |  _ \\  / \\\n"
-                        + "  / _ \\ |  \\| | / _ \\| |  | | | |  \\| | | | |/ _ \\\n"
-                        + " / ___ \\| |\\  |/ ___ \\ |__| |_| | |\\  | |_| / ___ \\\n"
-                        + "/_/   \\_\\_| \\_/_/   \\_\\____\\___/|_| \\_|____/_/   \\_\\\n";
-
-        System.out.println(LINE);
-        System.out.println(banner);
-        System.out.println("Yo, it's Anaconda.");
-        System.out.println("What do you want?");
-
-        Scanner scanner = new Scanner(System.in);
-        boolean isAwaitingClearConfirmation = false;
-        while (true) {
-            String input = scanner.nextLine().trim();
-
-            if (isAwaitingClearConfirmation) {
-                System.out.println(LINE);
-                try {
-                    clearTasksIfConfirmed(input, tasks, storage);
-                } catch (AnacondaException exception) {
-                    System.out.println("Oops! " + exception.getMessage());
-                }
-                System.out.println(LINE);
-                isAwaitingClearConfirmation = false;
-                continue;
-            }
-
-            if (input.equalsIgnoreCase("bye")) {
-                break;
-            }
-
-            System.out.println(LINE);
-            try {
-                isAwaitingClearConfirmation = handleCommand(input, tasks, storage);
-            } catch (AnacondaException exception) {
-                System.out.println("Oops! " + exception.getMessage());
-            }
-            System.out.println(LINE);
-        }
-
-        scanner.close();
-        System.out.println(LINE);
-        System.out.println("Alright, until next time.");
-        System.out.println(LINE);
+        new Anaconda(DATA_FILE).run();
     }
 
     /**
-     * Executes one command and updates the task list when necessary.
-     *
-     * @param input Complete input entered by the user.
-     * @param tasks List containing the current tasks.
-     * @param storage Storage manager used to save task changes.
-     * @return {@code true} if the next input should confirm a clear command.
-     * @throws AnacondaException If the command or its arguments are invalid, or a change cannot be saved.
+     * Accepts commands and clear confirmations until the user enters bye.
      */
-    private static boolean handleCommand(String input, ArrayList<Task> tasks, Storage storage)
-            throws AnacondaException {
-        if (input.isEmpty()) {
-            throw new AnacondaException("Please enter a command.");
+    public void run() {
+        ui.showWelcome();
+        boolean isAwaitingClearConfirmation = false;
+        while (true) {
+            String input = ui.readCommand();
+            if (!isAwaitingClearConfirmation && parser.isExitCommand(input)) {
+                break;
+            }
+
+            ui.showLine();
+            try {
+                if (isAwaitingClearConfirmation) {
+                    isAwaitingClearConfirmation = false;
+                    clearTasksIfConfirmed(input);
+                } else {
+                    isAwaitingClearConfirmation = handleCommand(input);
+                }
+            } catch (AnacondaException exception) {
+                ui.showError(exception.getMessage());
+            }
+            ui.showLine();
         }
 
-        String[] inputParts = input.split("\\s+", 2);
-        Command command = parseCommand(inputParts[0]);
-        String arguments = inputParts.length == 2 ? inputParts[1].trim() : "";
+        ui.close();
+        ui.showGoodbye();
+    }
+
+    /**
+     * Dispatches a parsed command to the task list, storage, and user interface.
+     *
+     * @param input Complete user input.
+     * @return Whether the next input must confirm a clear operation.
+     * @throws AnacondaException If the command is invalid or saving fails.
+     */
+    private boolean handleCommand(String input) throws AnacondaException {
+        Parser.ParsedCommand parsedCommand = parser.parse(input);
+        Command command = parsedCommand.command();
+        String arguments = parsedCommand.arguments();
 
         switch (command) {
         case LIST:
-            requireNoArguments(arguments, "list");
-            System.out.println("Your list:");
-            System.out.print(Task.displayList(tasks));
+            ui.showTasks(tasks.asList(), false);
             break;
         case MARK:
-            int markIndex = parseTaskIndex(arguments, tasks.size());
-            tasks.get(markIndex).markAsDone();
-            saveTasks(storage, tasks);
-            System.out.println("Marked it done for you:");
-            System.out.println("  " + tasks.get(markIndex));
+            Task markedTask = tasks.mark(parser.parseTaskNumber(arguments), true);
+            saveTasks();
+            ui.showMarked(markedTask, true);
             break;
         case UNMARK:
-            int unmarkIndex = parseTaskIndex(arguments, tasks.size());
-            tasks.get(unmarkIndex).markAsUndone();
-            saveTasks(storage, tasks);
-            System.out.println("Really? Unmarked? Alright . . .");
-            System.out.println("  " + tasks.get(unmarkIndex));
+            Task unmarkedTask = tasks.mark(parser.parseTaskNumber(arguments), false);
+            saveTasks();
+            ui.showMarked(unmarkedTask, false);
             break;
         case DELETE:
-            int deleteIndex = parseTaskIndex(arguments, tasks.size());
-            Task removedTask = tasks.remove(deleteIndex);
-            saveTasks(storage, tasks);
-            System.out.println("Noted. I've removed this task:");
-            System.out.println("  " + removedTask);
-            System.out.println("Now you have " + tasks.size() + " tasks in the list.");
+            Task removedTask = tasks.delete(parser.parseTaskNumber(arguments));
+            saveTasks();
+            ui.showTaskRemoved(removedTask, tasks.size());
             break;
         case CLEAR:
-            requireNoArguments(arguments, "clear");
-            System.out.println("You sure? (yes/no)");
+            ui.showClearQuestion();
             return true;
         case TODO:
-            requireDescription(arguments, "todo");
-            addTask(tasks, new ToDo(arguments), storage);
-            break;
         case DEADLINE:
-            addDeadline(tasks, arguments, storage);
-            break;
         case EVENT:
-            addEvent(tasks, arguments, storage);
+            Task task = parser.parseTask(command, arguments);
+            tasks.add(task);
+            saveTasks();
+            ui.showTaskAdded(task, tasks.size());
             break;
         case BY:
         case FROM:
-            displayTasksByDate(tasks, arguments, command);
+            Parser.DateFilter filter = parser.parseDateFilter(arguments, command);
+            ui.showTasks(tasks.filterByDate(filter.date(), command, filter.isSharp()), true);
             break;
         case BYE:
-            throw new AnacondaException("The bye command cannot have extra text.");
+            // Standalone bye commands are handled by the run loop.
+            break;
         }
         return false;
     }
 
     /**
-     * Clears and saves the task list only when the user explicitly confirms.
-     *
-     * @param confirmation Confirmation entered by the user.
-     * @param tasks List to clear.
-     * @param storage Storage manager used to save the empty list.
-     * @throws AnacondaException If the cleared task list cannot be saved.
+     * Clears and saves tasks only after explicit approval.
      */
-    private static void clearTasksIfConfirmed(String confirmation, ArrayList<Task> tasks, Storage storage)
-            throws AnacondaException {
-        if (!confirmation.equalsIgnoreCase("yes")) {
-            System.out.println("That's not a yes. Kept your tasks.");
+    private void clearTasksIfConfirmed(String confirmation) throws AnacondaException {
+        if (!parser.isClearConfirmed(confirmation)) {
+            ui.showClearCancelled();
             return;
         }
-
         tasks.clear();
-        saveTasks(storage, tasks);
-        System.out.println("Fine. Everything's gone.");
+        saveTasks();
+        ui.showCleared();
     }
 
     /**
-     * Loads saved tasks before the command loop starts. If the file cannot be
-     * read, Anaconda starts with an empty list and explains the problem.
-     *
-     * @param storage Storage manager used to load tasks.
-     * @return Tasks loaded from storage, or an empty list if loading fails.
+     * Loads saved tasks, reporting file-reading errors before starting with an empty list.
      */
-    private static ArrayList<Task> loadTasks(Storage storage) {
+    private TaskList loadTasks() {
         try {
-            return storage.loadTasks();
+            return new TaskList(storage.loadTasks());
         } catch (IOException exception) {
-            System.out.println("Oops! I couldn't load your saved tasks.");
-            return new ArrayList<>();
+            ui.showLoadingError();
+            return new TaskList();
         }
     }
 
     /**
-     * Saves the current task list and converts file errors into user-facing errors.
-     *
-     * @param storage Storage manager used to save tasks.
-     * @param tasks Tasks to save.
-     * @throws AnacondaException If the task list cannot be saved.
+     * Saves the current list and translates file errors into user-facing exceptions.
      */
-    private static void saveTasks(Storage storage, ArrayList<Task> tasks) throws AnacondaException {
+    private void saveTasks() throws AnacondaException {
         try {
-            storage.saveTasks(tasks);
+            storage.saveTasks(tasks.asList());
         } catch (IOException exception) {
             throw new AnacondaException("I couldn't save your task list.");
         }
-    }
-
-    /**
-     * Converts a command word into its corresponding enum value.
-     *
-     * @param commandWord Command word entered by the user.
-     * @return Matching command.
-     * @throws AnacondaException If the command word is not supported.
-     */
-    private static Command parseCommand(String commandWord) throws AnacondaException {
-        try {
-            return switch (commandWord.toUpperCase(Locale.ROOT)) {
-            case "/BY" -> Command.BY;
-            case "/FROM" -> Command.FROM;
-            default -> Command.valueOf(commandWord.toUpperCase(Locale.ROOT));
-            };
-        } catch (IllegalArgumentException exception) {
-            throw new AnacondaException("I don't recognize that command.");
-        }
-    }
-
-    /**
-     * Parses and adds a deadline command's arguments.
-     *
-     * @param tasks List to which the deadline is added.
-     * @param arguments Deadline description and date entered by the user.
-     * @param storage Storage manager used to save the updated list.
-     * @throws AnacondaException If the arguments are invalid or the task cannot be saved.
-     */
-    private static void addDeadline(ArrayList<Task> tasks, String arguments, Storage storage)
-            throws AnacondaException {
-        int byPosition = arguments.indexOf("/by");
-        if (byPosition < 0) {
-            throw new AnacondaException("A deadline needs '/by' followed by a date or time.");
-        }
-
-        String description = arguments.substring(0, byPosition).trim();
-        String byText = arguments.substring(byPosition + "/by".length()).trim();
-        requireDescription(description, "deadline");
-        if (byText.isEmpty()) {
-            throw new AnacondaException("A deadline needs a date or time after '/by'.");
-        }
-        LocalDate by = parseDate(byText);
-        addTask(tasks, new Deadline(description, by), storage);
-    }
-
-    /**
-     * Parses and adds an event command's arguments.
-     *
-     * @param tasks List to which the event is added.
-     * @param arguments Event description and times entered by the user.
-     * @param storage Storage manager used to save the updated list.
-     * @throws AnacondaException If the arguments are invalid or the task cannot be saved.
-     */
-    private static void addEvent(ArrayList<Task> tasks, String arguments, Storage storage)
-            throws AnacondaException {
-        int fromPosition = arguments.indexOf("/from");
-        int toPosition = fromPosition < 0
-                ? -1
-                : arguments.indexOf("/to", fromPosition + "/from".length());
-        if (fromPosition < 0 || toPosition < 0) {
-            throw new AnacondaException("An event needs both '/from' and '/to' times.");
-        }
-
-        String description = arguments.substring(0, fromPosition).trim();
-        String fromText = arguments.substring(fromPosition + "/from".length(), toPosition).trim();
-        String toText = arguments.substring(toPosition + "/to".length()).trim();
-        requireDescription(description, "event");
-        if (fromText.isEmpty() || toText.isEmpty()) {
-            throw new AnacondaException("An event needs times after both '/from' and '/to'.");
-        }
-        LocalDate from = parseDate(fromText);
-        LocalDate to = parseDate(toText);
-        addTask(tasks, new Event(description, from, to), storage);
-    }
-
-    /**
-     * Parses a date written in either supported format.
-     *
-     * @param dateText Date entered by the user.
-     * @return Parsed date.
-     * @throws AnacondaException If the text is not a valid supported date.
-     */
-    private static LocalDate parseDate(String dateText) throws AnacondaException {
-        try {
-            return LocalDate.parse(dateText);
-        } catch (DateTimeParseException exception) {
-            try {
-                return LocalDate.parse(dateText, DAY_FIRST_DATE_FORMATTER);
-            } catch (DateTimeParseException secondException) {
-                throw new AnacondaException("Dates must use yyyy-MM-dd or dd-MM-yyyy.");
-            }
-        }
-    }
-
-    /**
-     * Displays dated tasks whose ending dates match the requested range.
-     *
-     * @param tasks Tasks to search.
-     * @param arguments Filter date followed by an optional {@code sharp} keyword.
-     * @param command Direction of the date range.
-     * @throws AnacondaException If the filter arguments or date are invalid.
-     */
-    private static void displayTasksByDate(ArrayList<Task> tasks, String arguments, Command command)
-            throws AnacondaException {
-        String commandWord = command == Command.BY ? "/by" : "/from";
-        String[] filterParts = arguments.split("\\s+");
-        boolean hasValidPartCount = !arguments.isEmpty() && filterParts.length <= 2;
-        boolean isSharp = filterParts.length == 2 && filterParts[1].equalsIgnoreCase("sharp");
-        if (!hasValidPartCount || (filterParts.length == 2 && !isSharp)) {
-            throw new AnacondaException("Use '" + commandWord + " DATE' or '"
-                    + commandWord + " DATE sharp'.");
-        }
-
-        LocalDate filterDate = parseDate(filterParts[0]);
-        ArrayList<Task> matchingTasks = new ArrayList<>();
-        for (Task task : tasks) {
-            LocalDate endDate = getEndDate(task);
-            if (endDate == null) {
-                continue;
-            }
-
-            boolean isMatch = isSharp
-                    ? endDate.equals(filterDate)
-                    : command == Command.BY
-                            ? !endDate.isAfter(filterDate)
-                            : !endDate.isBefore(filterDate);
-            if (isMatch) {
-                matchingTasks.add(task);
-            }
-        }
-
-        System.out.println("Matching tasks:");
-        System.out.print(Task.displayList(matchingTasks));
-    }
-
-    /**
-     * Returns the date on which a dated task ends.
-     *
-     * @param task Task whose ending date is needed.
-     * @return Deadline or event ending date, or {@code null} for an undated task.
-     */
-    private static LocalDate getEndDate(Task task) {
-        if (task instanceof Deadline deadline) {
-            return deadline.getBy();
-        }
-        if (task instanceof Event event) {
-            return event.getTo();
-        }
-        return null;
-    }
-
-    /**
-     * Converts a one-based task number to a valid list index.
-     *
-     * @param arguments Task number entered by the user.
-     * @param taskCount Number of tasks in the list.
-     * @return Zero-based list index.
-     * @throws AnacondaException If the task number is missing or outside the list.
-     */
-    private static int parseTaskIndex(String arguments, int taskCount) throws AnacondaException {
-        int taskNumber;
-        try {
-            taskNumber = Integer.parseInt(arguments);
-        } catch (NumberFormatException exception) {
-            throw new AnacondaException("Please provide one task number.");
-        }
-
-        if (taskNumber < 1 || taskNumber > taskCount) {
-            throw new AnacondaException("Task " + taskNumber + " does not exist.");
-        }
-        return taskNumber - 1;
-    }
-
-    /**
-     * Stores a task and prints the updated list size.
-     *
-     * @param tasks List to which the task is added.
-     * @param task Task to add.
-     * @param storage Storage manager used to save the updated list.
-     * @throws AnacondaException If the updated task list cannot be saved.
-     */
-    private static void addTask(ArrayList<Task> tasks, Task task, Storage storage) throws AnacondaException {
-        tasks.add(task);
-        saveTasks(storage, tasks);
-        printTaskAdded(task, tasks.size());
-    }
-
-    /**
-     * Ensures a task description is present.
-     *
-     * @param description Task description to validate.
-     * @param taskType Task type used in the error message.
-     * @throws AnacondaException If the description is empty.
-     */
-    private static void requireDescription(String description, String taskType) throws AnacondaException {
-        if (description.isEmpty()) {
-            throw new AnacondaException("The description of a " + taskType + " cannot be empty.");
-        }
-    }
-
-    /**
-     * Ensures a command that takes no arguments has none.
-     *
-     * @param arguments Command arguments to validate.
-     * @param command Command name used in the error message.
-     * @throws AnacondaException If extra arguments are present.
-     */
-    private static void requireNoArguments(String arguments, String command) throws AnacondaException {
-        if (!arguments.isEmpty()) {
-            throw new AnacondaException("The " + command + " command does not take extra text.");
-        }
-    }
-
-    /**
-     * Prints confirmation after a task is added.
-     *
-     * @param task Task that was added.
-     * @param taskCount Number of tasks now stored.
-     */
-    private static void printTaskAdded(Task task, int taskCount) {
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
     }
 }
