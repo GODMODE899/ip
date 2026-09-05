@@ -24,7 +24,8 @@ public class UiTest {
 
     @Test
     public void readCommand_multipleLines_trimsEdgesAndPreservesInternalWhitespace() {
-        try (ConsoleSession session = new ConsoleSession("  todo Read  Book \t\n   \nBYE\n"); Ui ui = new Ui()) {
+        try (ConsoleSession session = new ConsoleSession("  todo Read  Book \t\n   \nBYE\n");
+                Ui ui = new Ui()) {
             assertEquals("todo Read  Book", ui.readCommand());
             assertEquals("", ui.readCommand());
             assertEquals("BYE", ui.readCommand());

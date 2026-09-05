@@ -41,11 +41,11 @@ public class ParserTest {
 
     @Test
     public void parse_emptyOrUnknownCommand_throwsHelpfulException() {
-        for (String input : new String[]{"", " ", "\t"}) {
+        for (String input : new String[] {"", " ", "\t"}) {
             assertEquals("Please enter a command.",
                     assertThrows(AnacondaException.class, () -> parser.parse(input)).getMessage());
         }
-        for (String input : new String[]{"todos book", "unknown", "/before 2026-08-19"}) {
+        for (String input : new String[] {"todos book", "unknown", "/before 2026-08-19"}) {
             assertEquals("I don't recognize that command.",
                     assertThrows(AnacondaException.class, () -> parser.parse(input)).getMessage());
         }
@@ -53,9 +53,10 @@ public class ParserTest {
 
     @Test
     public void parse_unexpectedArguments_rejectsListClearAndBye() {
-        for (String command : new String[]{"list", "clear"}) {
+        for (String command : new String[] {"list", "clear"}) {
             assertEquals("The " + command + " command does not take extra text.",
-                    assertThrows(AnacondaException.class, () -> parser.parse(command + " extra")).getMessage());
+                    assertThrows(AnacondaException.class,
+                            () -> parser.parse(command + " extra")).getMessage());
         }
         assertEquals("The bye command cannot have extra text.",
                 assertThrows(AnacondaException.class, () -> parser.parse("bye now")).getMessage());
@@ -64,7 +65,7 @@ public class ParserTest {
     @Test
     public void isExitCommand_onlyStandaloneBye_returnsTrue() {
         assertTrue(parser.isExitCommand(" BYe\t"));
-        for (String input : new String[]{"", "bye now", "goodbye", "todo bye"}) {
+        for (String input : new String[] {"", "bye now", "goodbye", "todo bye"}) {
             assertFalse(parser.isExitCommand(input), input);
         }
     }
@@ -73,7 +74,7 @@ public class ParserTest {
     public void isClearConfirmed_onlyExplicitYes_returnsTrue() {
         assertTrue(parser.isClearConfirmed("yes"));
         assertTrue(parser.isClearConfirmed(" YES "));
-        for (String input : new String[]{"", "y", "no", "yes please", "bye"}) {
+        for (String input : new String[] {"", "y", "no", "yes please", "bye"}) {
             assertFalse(parser.isClearConfirmed(input), input);
         }
     }
@@ -87,7 +88,7 @@ public class ParserTest {
 
     @Test
     public void parseTask_deadline_acceptsBothDateFormatsAndTrimsFields() throws AnacondaException {
-        for (String date : new String[]{"2024-02-29", "29-02-2024"}) {
+        for (String date : new String[] {"2024-02-29", "29-02-2024"}) {
             Deadline task = assertInstanceOf(Deadline.class,
                     parser.parseTask(Command.DEADLINE, " return book  /by  " + date));
             assertEquals("return book", task.getDescription());
@@ -109,7 +110,8 @@ public class ParserTest {
     @Test
     public void parseTask_emptyDescriptions_throwsHelpfulException() {
         assertEquals("The description of a todo cannot be empty.",
-                assertThrows(AnacondaException.class, () -> parser.parseTask(Command.TODO, "")).getMessage());
+                assertThrows(AnacondaException.class,
+                        () -> parser.parseTask(Command.TODO, "")).getMessage());
         assertEquals("The description of a deadline cannot be empty.", assertThrows(AnacondaException.class,
                 () -> parser.parseTask(Command.DEADLINE, "/by 2026-08-19")).getMessage());
         assertEquals("The description of a event cannot be empty.", assertThrows(AnacondaException.class,
@@ -118,35 +120,39 @@ public class ParserTest {
 
     @Test
     public void parseTask_missingDeadlineFields_throwsHelpfulException() {
-        assertEquals("A deadline needs '/by' followed by a date or time.", assertThrows(AnacondaException.class,
-                () -> parser.parseTask(Command.DEADLINE, "book")).getMessage());
+        assertEquals("A deadline needs '/by' followed by a date or time.",
+                assertThrows(AnacondaException.class,
+                        () -> parser.parseTask(Command.DEADLINE, "book")).getMessage());
         assertEquals("A deadline needs a date or time after '/by'.", assertThrows(AnacondaException.class,
                 () -> parser.parseTask(Command.DEADLINE, "book /by ")).getMessage());
     }
 
     @Test
     public void parseTask_missingOrMisorderedEventMarkers_throwsException() {
-        for (String arguments : new String[]{"meeting", "meeting /from 2026-08-18",
-            "meeting /to 2026-08-19", "meeting /to 2026-08-19 /from 2026-08-18"}) {
-            assertEquals("An event needs both '/from' and '/to' times.", assertThrows(AnacondaException.class,
-                    () -> parser.parseTask(Command.EVENT, arguments)).getMessage());
+        for (String arguments : new String[] {"meeting", "meeting /from 2026-08-18",
+                "meeting /to 2026-08-19", "meeting /to 2026-08-19 /from 2026-08-18"}) {
+            assertEquals("An event needs both '/from' and '/to' times.",
+                    assertThrows(AnacondaException.class,
+                            () -> parser.parseTask(Command.EVENT, arguments)).getMessage());
         }
     }
 
     @Test
     public void parseTask_emptyEventDates_throwsException() {
-        for (String arguments : new String[]{"meeting /from /to 2026-08-19",
-            "meeting /from 2026-08-18 /to", "meeting /from /to"}) {
-            assertEquals("An event needs times after both '/from' and '/to'.", assertThrows(AnacondaException.class,
-                    () -> parser.parseTask(Command.EVENT, arguments)).getMessage());
+        for (String arguments : new String[] {"meeting /from /to 2026-08-19",
+                "meeting /from 2026-08-18 /to", "meeting /from /to"}) {
+            assertEquals("An event needs times after both '/from' and '/to'.",
+                    assertThrows(AnacondaException.class,
+                            () -> parser.parseTask(Command.EVENT, arguments)).getMessage());
         }
     }
 
     @Test
     public void parseTask_impossibleOrMalformedDates_rejectsEveryDateField() {
-        for (String date : new String[]{"2023-02-29", "31-04-2026", "2026-13-01", "2026-00-01",
-            "2026-08-00", "19/08/2026", "2026-8-19", "2026-08-19 1800", "Sunday"}) {
-            assertThrows(AnacondaException.class, () -> parser.parseTask(Command.DEADLINE, "book /by " + date));
+        for (String date : new String[] {"2023-02-29", "31-04-2026", "2026-13-01", "2026-00-01",
+                "2026-08-00", "19/08/2026", "2026-8-19", "2026-08-19 1800", "Sunday"}) {
+            assertThrows(AnacondaException.class,
+                    () -> parser.parseTask(Command.DEADLINE, "book /by " + date));
             assertThrows(AnacondaException.class,
                     () -> parser.parseTask(Command.EVENT, "meeting /from " + date + " /to 2026-08-19"));
             assertThrows(AnacondaException.class,
@@ -160,15 +166,16 @@ public class ParserTest {
     }
 
     @Test
-    public void parseTaskNumber_integerBoundaries_leavesRangeValidationToTaskList() throws AnacondaException {
-        for (int number : new int[]{Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE}) {
+    public void parseTaskNumber_integerBoundaries_leavesRangeValidationToTaskList()
+            throws AnacondaException {
+        for (int number : new int[] {Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE}) {
             assertEquals(number, parser.parseTaskNumber(Integer.toString(number)));
         }
     }
 
     @Test
     public void parseTaskNumber_nonIntegerOrOverflow_throwsHelpfulException() {
-        for (String input : new String[]{"", "two", "1 2", "1.0", "2147483648", "-2147483649"}) {
+        for (String input : new String[] {"", "two", "1 2", "1.0", "2147483648", "-2147483649"}) {
             assertEquals("Please provide one task number.",
                     assertThrows(AnacondaException.class, () -> parser.parseTaskNumber(input)).getMessage());
         }
@@ -176,8 +183,8 @@ public class ParserTest {
 
     @Test
     public void parseDateFilter_validDatesAndModifiers_returnsParsedValues() throws AnacondaException {
-        for (Command command : new Command[]{Command.BY, Command.FROM}) {
-            for (String date : new String[]{"2026-08-19", "19-08-2026"}) {
+        for (Command command : new Command[] {Command.BY, Command.FROM}) {
+            for (String date : new String[] {"2026-08-19", "19-08-2026"}) {
                 assertEquals(new Parser.DateFilter(LocalDate.of(2026, 8, 19), false),
                         parser.parseDateFilter(date, command));
                 assertEquals(new Parser.DateFilter(LocalDate.of(2026, 8, 19), true),
@@ -188,9 +195,9 @@ public class ParserTest {
 
     @Test
     public void parseDateFilter_missingDateOrExtraWords_throwsSyntaxException() {
-        for (Command command : new Command[]{Command.BY, Command.FROM}) {
+        for (Command command : new Command[] {Command.BY, Command.FROM}) {
             String word = command == Command.BY ? "/by" : "/from";
-            for (String input : new String[]{"", "2026-08-19 now", "2026-08-19 sharp extra"}) {
+            for (String input : new String[] {"", "2026-08-19 now", "2026-08-19 sharp extra"}) {
                 assertEquals("Use '" + word + " DATE' or '" + word + " DATE sharp'.",
                         assertThrows(AnacondaException.class,
                                 () -> parser.parseDateFilter(input, command)).getMessage());
@@ -200,7 +207,7 @@ public class ParserTest {
 
     @Test
     public void parseDateFilter_invalidDate_throwsDateException() {
-        for (String input : new String[]{"2023-02-29", "31-04-2026 sharp", "tomorrow"}) {
+        for (String input : new String[] {"2023-02-29", "31-04-2026 sharp", "tomorrow"}) {
             assertEquals("Dates must use yyyy-MM-dd or dd-MM-yyyy.", assertThrows(AnacondaException.class,
                     () -> parser.parseDateFilter(input, Command.BY)).getMessage());
         }
