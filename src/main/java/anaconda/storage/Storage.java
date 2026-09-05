@@ -98,10 +98,10 @@ public class Storage {
     private Task parseTask(String line) {
         String[] fields = line.split(" \\| ", -1);
         Task task = switch (fields[0]) {
-        case "T" -> new ToDo(fields[2]);
-        case "D" -> new Deadline(fields[2], LocalDate.parse(fields[3]));
-        case "E" -> new Event(fields[2], LocalDate.parse(fields[3]), LocalDate.parse(fields[4]));
-        default -> throw new IllegalArgumentException("Unknown task type: " + fields[0]);
+            case "T" -> new ToDo(fields[2]);
+            case "D" -> new Deadline(fields[2], LocalDate.parse(fields[3]));
+            case "E" -> new Event(fields[2], LocalDate.parse(fields[3]), LocalDate.parse(fields[4]));
+            default -> throw new IllegalArgumentException("Unknown task type: " + fields[0]);
         };
 
         if (fields[1].equals("1")) {

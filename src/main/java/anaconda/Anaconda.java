@@ -86,43 +86,40 @@ public class Anaconda {
         String arguments = parsedCommand.arguments();
 
         switch (command) {
-        case LIST:
-            ui.showTasks(tasks.asList(), false);
-            break;
-        case MARK:
-            Task markedTask = tasks.mark(parser.parseTaskNumber(arguments), true);
-            saveTasks();
-            ui.showMarked(markedTask, true);
-            break;
-        case UNMARK:
-            Task unmarkedTask = tasks.mark(parser.parseTaskNumber(arguments), false);
-            saveTasks();
-            ui.showMarked(unmarkedTask, false);
-            break;
-        case DELETE:
-            Task removedTask = tasks.delete(parser.parseTaskNumber(arguments));
-            saveTasks();
-            ui.showTaskRemoved(removedTask, tasks.size());
-            break;
-        case CLEAR:
-            ui.showClearQuestion();
-            return true;
-        case TODO:
-        case DEADLINE:
-        case EVENT:
-            Task task = parser.parseTask(command, arguments);
-            tasks.add(task);
-            saveTasks();
-            ui.showTaskAdded(task, tasks.size());
-            break;
-        case BY:
-        case FROM:
-            Parser.DateFilter filter = parser.parseDateFilter(arguments, command);
-            ui.showTasks(tasks.filterByDate(filter.date(), command, filter.isSharp()), true);
-            break;
-        case BYE:
-            // Standalone bye commands are handled by the run loop.
-            break;
+            case LIST:
+                ui.showTasks(tasks.asList(), false);
+                break;
+            case MARK:
+                Task markedTask = tasks.mark(parser.parseTaskNumber(arguments), true);
+                saveTasks();
+                ui.showMarked(markedTask, true);
+                break;
+            case UNMARK:
+                Task unmarkedTask = tasks.mark(parser.parseTaskNumber(arguments), false);
+                saveTasks();
+                ui.showMarked(unmarkedTask, false);
+                break;
+            case DELETE:
+                Task removedTask = tasks.delete(parser.parseTaskNumber(arguments));
+                saveTasks();
+                ui.showTaskRemoved(removedTask, tasks.size());
+                break;
+            case CLEAR:
+                ui.showClearQuestion();
+                return true;
+            case TODO, DEADLINE, EVENT:
+                Task task = parser.parseTask(command, arguments);
+                tasks.add(task);
+                saveTasks();
+                ui.showTaskAdded(task, tasks.size());
+                break;
+            case BY, FROM:
+                Parser.DateFilter filter = parser.parseDateFilter(arguments, command);
+                ui.showTasks(tasks.filterByDate(filter.date(), command, filter.isSharp()), true);
+                break;
+            case BYE:
+                // Standalone bye commands are handled by the run loop.
+                break;
         }
         return false;
     }

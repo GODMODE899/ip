@@ -54,19 +54,19 @@ public class Parser {
         Command command = parseCommand(inputParts[0]);
         String arguments = inputParts.length == 2 ? inputParts[1].trim() : "";
         switch (command) {
-        case LIST:
-            requireNoArguments(arguments, "list");
-            break;
-        case CLEAR:
-            requireNoArguments(arguments, "clear");
-            break;
-        case BYE:
-            if (!arguments.isEmpty()) {
-                throw new AnacondaException("The bye command cannot have extra text.");
-            }
-            break;
-        default:
-            break;
+            case LIST:
+                requireNoArguments(arguments, "list");
+                break;
+            case CLEAR:
+                requireNoArguments(arguments, "clear");
+                break;
+            case BYE:
+                if (!arguments.isEmpty()) {
+                    throw new AnacondaException("The bye command cannot have extra text.");
+                }
+                break;
+            default:
+                break;
         }
         return new ParsedCommand(command, arguments);
     }
@@ -102,15 +102,15 @@ public class Parser {
      */
     public Task parseTask(Command command, String arguments) throws AnacondaException {
         switch (command) {
-        case TODO:
-            requireDescription(arguments, "todo");
-            return new ToDo(arguments);
-        case DEADLINE:
-            return parseDeadline(arguments);
-        case EVENT:
-            return parseEvent(arguments);
-        default:
-            throw new IllegalArgumentException("Command does not create a task: " + command);
+            case TODO:
+                requireDescription(arguments, "todo");
+                return new ToDo(arguments);
+            case DEADLINE:
+                return parseDeadline(arguments);
+            case EVENT:
+                return parseEvent(arguments);
+            default:
+                throw new IllegalArgumentException("Command does not create a task: " + command);
         }
     }
 
@@ -155,9 +155,9 @@ public class Parser {
     private Command parseCommand(String commandWord) throws AnacondaException {
         try {
             return switch (commandWord.toUpperCase(Locale.ROOT)) {
-            case "/BY" -> Command.BY;
-            case "/FROM" -> Command.FROM;
-            default -> Command.valueOf(commandWord.toUpperCase(Locale.ROOT));
+                case "/BY" -> Command.BY;
+                case "/FROM" -> Command.FROM;
+                default -> Command.valueOf(commandWord.toUpperCase(Locale.ROOT));
             };
         } catch (IllegalArgumentException exception) {
             throw new AnacondaException("I don't recognize that command.");

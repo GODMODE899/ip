@@ -40,7 +40,8 @@ public class AnacondaTest {
     public void run_taskCommands_persistsChangesAndLoadsThemOnRestart() throws IOException {
         Path file = temporaryDirectory.resolve("data/tasks.txt");
         String output = runSession(file, "todo read book\ndeadline report /by 2026-08-19\n"
-                + "event meeting /from 2026-08-18 /to 2026-08-20\nmark 2\nunmark 2\nmark 3\ndelete 1\nlist\nbye\n");
+                + "event meeting /from 2026-08-18 /to 2026-08-20\nmark 2\nunmark 2\n"
+                + "mark 3\ndelete 1\nlist\nbye\n");
         assertTrue(output.contains("Now you have 3 tasks in the list."));
         assertTrue(output.contains("Marked it done for you:\n  [D][X] report"));
         assertTrue(output.contains("Really? Unmarked? Alright . . .\n  [D][ ] report"));
@@ -71,14 +72,15 @@ public class AnacondaTest {
         String output = runSession(file, "todo book\nclear\n YES \nlist\nbye\n");
         assertTrue(output.contains("You sure? (yes/no)"));
         assertTrue(output.contains("Fine. Everything's gone."));
-        assertTrue(output.contains("Your list:\n____________________________________________________________"));
+        assertTrue(output.contains("Your list:\n"
+                + "____________________________________________________________"));
         assertEquals("", Files.readString(file));
         assertFalse(runSession(file, "list\nbye\n").contains("[T]"));
     }
 
     @Test
     public void run_clearNotExplicitlyConfirmed_keepsTasksAndConsumesOnlyOneResponse() throws IOException {
-        for (String response : new String[]{"no", "", "yes please", "bye", "todo accidental"}) {
+        for (String response : new String[] {"no", "", "yes please", "bye", "todo accidental"}) {
             Path file = temporaryDirectory.resolve("tasks.txt");
             Files.writeString(file, "T | 0 | book\n");
             String output = runSession(file, "clear\n" + response + "\nlist\nbye\n");
@@ -110,7 +112,8 @@ public class AnacondaTest {
     public void constructor_unreadableDataFile_reportsErrorAndStartsEmpty() {
         String output = runSession(temporaryDirectory, "list\nbye\n");
         assertTrue(output.startsWith("Oops! I couldn't load your saved tasks.\n"));
-        assertTrue(output.contains("Your list:\n____________________________________________________________"));
+        assertTrue(output.contains("Your list:\n"
+                + "____________________________________________________________"));
         assertTrue(output.contains("Alright, until next time."));
     }
 
@@ -125,7 +128,8 @@ public class AnacondaTest {
 
     @Test
     public void main_newWorkingDirectory_usesRelativeDefaultDataPath() throws Exception {
-        // A child JVM safely tests main's hard-coded relative path without changing this JVM's working directory.
+        // Use a child JVM to test main's hard-coded relative path without changing
+        // this JVM's working directory.
         String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
         Path java = Path.of(System.getProperty("java.home"), "bin", executable);
         Path classes = Path.of(Anaconda.class.getProtectionDomain().getCodeSource().getLocation().toURI());

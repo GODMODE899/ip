@@ -97,7 +97,8 @@ public class StorageTest {
     }
 
     @Test
-    public void saveAndLoad_unicodeAndRepeatedLoads_preserveTextWithoutSharingTaskInstances() throws IOException {
+    public void saveAndLoad_unicodeAndRepeatedLoads_preserveTextWithoutSharingTaskInstances()
+            throws IOException {
         Storage storage = new Storage(temporaryDirectory.resolve("tasks.txt"));
         Task original = new ToDo("读书 — café  break");
         storage.saveTasks(List.of(original));
