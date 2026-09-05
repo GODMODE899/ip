@@ -50,6 +50,7 @@ See `test/junit-coverage.md` for the current coverage map and Gradle commands.
 
 ## Git
 
-Use lightweight tags unless the user requests an annotated tag.
-When proposing or creating a commit message, include enough detail to explain the rationale for the change.
-Do not commit or push unless explicitly asked.
+Before planning branches or proposing, creating, amending, tagging, merging, or reviewing commits, load and
+follow the project-specific `seedu-git-standard` skill at `.codex/skills/seedu-git-standard/SKILL.md`.
+All future commits must comply with that skill. Git inspection never authorizes mutation; do not stage, commit,
+amend, tag, merge, push, or delete branches unless the user explicitly requests the relevant action.
