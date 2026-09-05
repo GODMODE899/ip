@@ -33,6 +33,11 @@ public class Deadline extends Task {
         return by;
     }
 
+    /**
+     * Formats the deadline using its type, completion status, description, and deadline date.
+     *
+     * @return Display representation of this deadline.
+     */
     @Override
     public String toString() {
         return "[D]" + super.toString() + " (by: " + by.format(DISPLAY_FORMATTER) + ")";

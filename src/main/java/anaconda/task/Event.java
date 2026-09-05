@@ -45,6 +45,11 @@ public class Event extends Task {
         return to;
     }
 
+    /**
+     * Formats the event using its type, completion status, description, and date range.
+     *
+     * @return Display representation of this event.
+     */
     @Override
     public String toString() {
         return "[E]" + super.toString() + " (from: " + from.format(DISPLAY_FORMATTER)

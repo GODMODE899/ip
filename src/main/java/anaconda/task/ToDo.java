@@ -13,6 +13,11 @@ public class ToDo extends Task {
         super(description);
     }
 
+    /**
+     * Formats the ToDo using its type, completion status, and description.
+     *
+     * @return Display representation of this ToDo.
+     */
     @Override
     public String toString() {
         return "[T]" + super.toString();
