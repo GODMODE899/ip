@@ -91,6 +91,20 @@ public class UiTest {
     }
 
     @Test
+    public void showFindResults_matchingAndEmptyLists_printsRequiredHeaderAndNumbering() {
+        Task todo = new ToDo("read book");
+        todo.markAsDone();
+        List<Task> tasks = List.of(todo, new Deadline("return book", LocalDate.of(2026, 8, 19)));
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            ui.showFindResults(tasks);
+            ui.showFindResults(List.of());
+            assertEquals("Here are the matching tasks in your list:\n1.[T][X] read book\n"
+                    + "2.[D][ ] return book (by: Aug 19 2026)\n"
+                    + "Here are the matching tasks in your list:\n", session.output());
+        }
+    }
+
+    @Test
     public void showTaskAddedAndRemoved_printsTaskAndSuppliedCount() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             Task task = new ToDo("book");

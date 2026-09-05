@@ -76,6 +76,18 @@ public class Ui implements AutoCloseable {
     }
 
     /**
+     * Displays tasks whose descriptions match a find command.
+     *
+     * @param tasks Matching tasks in their original order.
+     */
+    public void showFindResults(List<Task> tasks) {
+        System.out.println("Here are the matching tasks in your list:");
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println((i + 1) + "." + tasks.get(i));
+        }
+    }
+
+    /**
      * Displays an added task and the updated task count.
      *
      * @param task Task that was added.

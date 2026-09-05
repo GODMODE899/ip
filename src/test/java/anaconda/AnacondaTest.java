@@ -107,6 +107,22 @@ public class AnacondaTest {
     }
 
     @Test
+    public void run_findCommand_matchesDescriptionsIgnoringCaseWithoutSaving() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String saved = "T | 1 | Read Book\nD | 0 | return book | 2026-08-19\n"
+                + "E | 0 | book launch | 2026-08-18 | 2026-08-20\nD | 0 | report | 2026-08-20\n";
+        Files.writeString(file, saved);
+        String output = runSession(file, "find BOOK\nfind 2026\nfind\nbye\n");
+        String line = "____________________________________________________________\n";
+        assertTrue(output.contains("Here are the matching tasks in your list:\n"
+                + "1.[T][X] Read Book\n2.[D][ ] return book (by: Aug 19 2026)\n"
+                + "3.[E][ ] book launch (from: Aug 18 2026 to: Aug 20 2026)\n" + line));
+        assertTrue(output.contains("Here are the matching tasks in your list:\n" + line));
+        assertTrue(output.contains("Oops! Please provide a keyword to find."));
+        assertEquals(saved, Files.readString(file));
+    }
+
+    @Test
     public void constructor_unreadableDataFile_reportsErrorAndStartsEmpty() {
         String output = runSession(temporaryDirectory, "list\nbye\n");
         assertTrue(output.startsWith("Oops! I couldn't load your saved tasks.\n"));

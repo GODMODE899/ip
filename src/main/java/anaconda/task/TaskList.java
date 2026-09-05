@@ -3,6 +3,7 @@ package anaconda.task;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import anaconda.exception.AnacondaException;
 import anaconda.parser.Command;
@@ -91,6 +92,23 @@ public class TaskList {
      */
     public List<Task> asList() {
         return List.copyOf(tasks);
+    }
+
+    /**
+     * Finds tasks whose descriptions contain the supplied keyword, ignoring case.
+     *
+     * @param keyword Text to search for in task descriptions.
+     * @return Matching tasks in their original order.
+     */
+    public List<Task> find(String keyword) {
+        String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
+        ArrayList<Task> matchingTasks = new ArrayList<>();
+        for (Task task : tasks) {
+            if (task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword)) {
+                matchingTasks.add(task);
+            }
+        }
+        return List.copyOf(matchingTasks);
     }
 
     /**
