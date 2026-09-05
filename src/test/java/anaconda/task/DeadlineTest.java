@@ -17,6 +17,7 @@ public class DeadlineTest {
         LocalDate date = LocalDate.of(2026, 8, 9);
         Deadline task = new Deadline("return book", date);
         assertEquals(date, task.getBy());
+        assertEquals(date, task.getEndDate());
         assertEquals("[D][ ] return book (by: Aug 09 2026)", task.toString());
         task.markAsDone();
         assertEquals("[D][X] return book (by: Aug 09 2026)", task.toString());

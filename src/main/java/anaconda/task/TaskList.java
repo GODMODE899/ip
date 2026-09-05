@@ -122,7 +122,7 @@ public class TaskList {
     public List<Task> filterByDate(LocalDate filterDate, Command direction, boolean isSharp) {
         ArrayList<Task> matchingTasks = new ArrayList<>();
         for (Task task : tasks) {
-            LocalDate endDate = getEndDate(task);
+            LocalDate endDate = task.getEndDate();
             if (endDate == null) {
                 continue;
             }
@@ -152,16 +152,4 @@ public class TaskList {
         return taskNumber - 1;
     }
 
-    /**
-     * Returns a dated task's ending date, or null for an undated task.
-     */
-    private LocalDate getEndDate(Task task) {
-        if (task instanceof Deadline deadline) {
-            return deadline.getBy();
-        }
-        if (task instanceof Event event) {
-            return event.getTo();
-        }
-        return null;
-    }
 }

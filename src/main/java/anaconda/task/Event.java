@@ -45,6 +45,11 @@ public class Event extends Task {
         return to;
     }
 
+    @Override
+    public LocalDate getEndDate() {
+        return to;
+    }
+
     /**
      * Formats the event using its type, completion status, description, and date range.
      *

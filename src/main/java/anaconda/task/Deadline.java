@@ -33,6 +33,11 @@ public class Deadline extends Task {
         return by;
     }
 
+    @Override
+    public LocalDate getEndDate() {
+        return by;
+    }
+
     /**
      * Formats the deadline using its type, completion status, description, and deadline date.
      *

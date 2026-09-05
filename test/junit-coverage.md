@@ -18,10 +18,10 @@ not a claim of measured 100% line or branch coverage; no coverage instrumentatio
 | `Parser` | `parse`, `parseTask`, `parseTaskNumber`, `parseKeyword`, `parseDateFilter`, `isExitCommand`, `isClearConfirmed` | All command types, aliases, whitespace, required fields, invalid markers, both date formats, leap dates, integer boundaries/overflow, search keywords, sharp modifiers, helpful errors |
 | `TaskList` | Constructors, `add`, `delete`, `mark`, `clear`, `size`, `asList`, `find`, `filterByDate` | Defensive collection copy, ordering, first/last indices, invalid indices, repeated status changes, empty lists, unmodifiable snapshots, case-insensitive description search, inclusive/exact dates, event end dates, ToDo exclusion |
 | `Storage` | `loadTasks`, `saveTasks` | Missing file/folder, empty file, independently specified input/output formats, all task types/statuses, dates, overwrite/truncate, Unicode, independent loads, file I/O failures |
-| `Task` | Constructor, getters, `markAsDone`, `markAsUndone`, `toString` | Initial state, repeated transitions, description preservation, status markers |
+| `Task` | Constructor, getters including `getEndDate`, `markAsDone`, `markAsUndone`, `toString` | Initial state, repeated transitions, description preservation, absent end date, status markers |
 | `ToDo` | `toString` | Type marker and both completion states |
-| `Deadline` | Date getter, `toString` | Date retention, leading zero, both completion states, leap day, English month under a different locale |
-| `Event` | Date getters, `toString` | Distinct endpoints, year boundary, same-day event, both completion states, English month under a different locale |
+| `Deadline` | Date getters, `toString` | Date retention, polymorphic end date, leading zero, both completion states, leap day, English month under a different locale |
+| `Event` | Date getters, `toString` | Distinct endpoints, polymorphic end date, year boundary, same-day event, both completion states, English month under a different locale |
 | `Ui` | All public methods, including `readCommand` and `close` | Exact messages, banner, list/search headers and numbering, empty lists, counts, clear prompts, input trimming, reader closure |
 | `Anaconda` | Constructor, `run`, `main` | Command dispatch, saved state after restart, invalid-command recovery, clear confirmation/cancellation, description search, date filters, load/save errors, relative default path in a child JVM |
 

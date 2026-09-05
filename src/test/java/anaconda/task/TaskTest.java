@@ -2,6 +2,7 @@ package anaconda.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ public class TaskTest {
         Task task = new Task("Read  Book");
         assertEquals("Read  Book", task.getDescription());
         assertFalse(task.isDone());
+        assertNull(task.getEndDate());
         assertEquals("[ ] Read  Book", task.toString());
     }
 

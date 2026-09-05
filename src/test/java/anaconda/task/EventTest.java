@@ -19,6 +19,7 @@ public class EventTest {
         Event task = new Event("holiday", from, to);
         assertEquals(from, task.getFrom());
         assertEquals(to, task.getTo());
+        assertEquals(to, task.getEndDate());
         assertEquals("[E][ ] holiday (from: Dec 31 2025 to: Jan 02 2026)", task.toString());
         task.markAsDone();
         assertEquals("[E][X] holiday (from: Dec 31 2025 to: Jan 02 2026)", task.toString());

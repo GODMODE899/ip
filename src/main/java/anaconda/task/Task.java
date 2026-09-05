@@ -1,5 +1,7 @@
 package anaconda.task;
 
+import java.time.LocalDate;
+
 /**
  * Represents a task that can be marked as done or not done.
  */
@@ -43,6 +45,15 @@ public class Task {
      */
     public boolean isDone() {
         return isDone;
+    }
+
+    /**
+     * Returns the date when this task ends, or {@code null} if it has no end date.
+     *
+     * @return End date, or {@code null} for an undated task.
+     */
+    public LocalDate getEndDate() {
+        return null;
     }
 
     /**
