@@ -132,6 +132,33 @@ public class TaskListTest {
     }
 
     @Test
+    public void find_keywordMatchesDescriptions_ignoresCaseAndPreservesOrderAndState() {
+        Task first = new ToDo("Read Book");
+        Task second = new Deadline("return book", LocalDate.of(2026, 8, 19));
+        Task dateOnlyMatch = new Deadline("submit report", LocalDate.of(2026, 8, 20));
+        second.markAsDone();
+        TaskList tasks = new TaskList(List.of(first, dateOnlyMatch, second));
+
+        assertEquals(List.of(first, second), tasks.find("BOOK"));
+        assertEquals(List.of(first), tasks.find("read bo"));
+        assertTrue(tasks.find("2026").isEmpty());
+        assertEquals(List.of(first, dateOnlyMatch, second), tasks.asList());
+        assertTrue(second.isDone());
+    }
+
+    @Test
+    public void find_noMatchesOrLaterListChanges_returnsIndependentUnmodifiableSnapshot() {
+        Task task = new ToDo("book");
+        TaskList tasks = new TaskList(List.of(task));
+        assertTrue(tasks.find("missing").isEmpty());
+
+        List<Task> matches = tasks.find("book");
+        assertThrows(UnsupportedOperationException.class, matches::clear);
+        tasks.clear();
+        assertEquals(List.of(task), matches);
+    }
+
+    @Test
     public void filterByDate_boundaryDates_includesEqualityAndUsesEventEndRatherThanStart() {
         LocalDate date = LocalDate.of(2026, 8, 19);
         Task before = new Deadline("before", date.minusDays(1));

@@ -661,3 +661,90 @@ ____________________________________________________________
 D | 0 | return book | 2019-10-15
 E | 0 | project meeting | 2019-10-15 | 2019-10-16
 ```
+
+## Test case: TC11 - Find tasks by description
+
+### Aim
+
+Verify that find performs a case-insensitive substring search on task descriptions, preserves task state and
+order, reports empty results, and rejects a missing keyword without changing saved tasks.
+
+### Inputs
+
+```text
+todo read book
+deadline return book /by 2019-10-15
+event project meeting /from 2019-10-15 /to 2019-10-16
+todo buy groceries
+mark 1
+find book
+find PROJECT
+find missing
+find
+bye
+```
+
+### Expected output
+
+```text
+____________________________________________________________
+    _    _   _    _    ____ ___  _   _ ____    _
+   / \  | \ | |  / \  / ___/ _ \| \ | |  _ \  / \
+  / _ \ |  \| | / _ \| |  | | | |  \| | | | |/ _ \
+ / ___ \| |\  |/ ___ \ |__| |_| | |\  | |_| / ___ \
+/_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
+
+Yo, it's Anaconda.
+What do you want?
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] read book
+Now you have 1 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [D][ ] return book (by: Oct 15 2019)
+Now you have 2 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
+Now you have 3 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Got it. I've added this task:
+  [T][ ] buy groceries
+Now you have 4 tasks in the list.
+____________________________________________________________
+____________________________________________________________
+Marked it done for you:
+  [T][X] read book
+____________________________________________________________
+____________________________________________________________
+Here are the matching tasks in your list:
+1.[T][X] read book
+2.[D][ ] return book (by: Oct 15 2019)
+____________________________________________________________
+____________________________________________________________
+Here are the matching tasks in your list:
+1.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
+____________________________________________________________
+____________________________________________________________
+Here are the matching tasks in your list:
+____________________________________________________________
+____________________________________________________________
+Oops! Please provide a keyword to find.
+____________________________________________________________
+____________________________________________________________
+Alright, until next time.
+____________________________________________________________
+```
+
+### Expected data file
+
+```text
+T | 1 | read book
+D | 0 | return book | 2019-10-15
+E | 0 | project meeting | 2019-10-15 | 2019-10-16
+T | 0 | buy groceries
+```

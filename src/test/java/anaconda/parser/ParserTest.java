@@ -182,6 +182,14 @@ public class ParserTest {
     }
 
     @Test
+    public void parseKeyword_presentOrMissingKeyword_returnsKeywordOrThrowsHelpfulException()
+            throws AnacondaException {
+        assertEquals("Read  Book", parser.parseKeyword("Read  Book"));
+        assertEquals("Please provide a keyword to find.",
+                assertThrows(AnacondaException.class, () -> parser.parseKeyword("")).getMessage());
+    }
+
+    @Test
     public void parseDateFilter_validDatesAndModifiers_returnsParsedValues() throws AnacondaException {
         for (Command command : new Command[] {Command.BY, Command.FROM}) {
             for (String date : new String[] {"2026-08-19", "19-08-2026"}) {

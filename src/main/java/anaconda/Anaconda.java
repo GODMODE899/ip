@@ -107,6 +107,10 @@ public class Anaconda {
             case CLEAR:
                 ui.showClearQuestion();
                 return true;
+            case FIND:
+                String keyword = parser.parseKeyword(arguments);
+                ui.showFindResults(tasks.find(keyword));
+                break;
             case TODO, DEADLINE, EVENT:
                 Task task = parser.parseTask(command, arguments);
                 tasks.add(task);

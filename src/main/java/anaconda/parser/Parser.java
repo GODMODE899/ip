@@ -130,6 +130,20 @@ public class Parser {
     }
 
     /**
+     * Validates and returns a task-description search keyword.
+     *
+     * @param arguments Keyword entered after the find command.
+     * @return Search keyword with its original casing and internal whitespace.
+     * @throws AnacondaException If no keyword was provided.
+     */
+    public String parseKeyword(String arguments) throws AnacondaException {
+        if (arguments.isEmpty()) {
+            throw new AnacondaException("Please provide a keyword to find.");
+        }
+        return arguments;
+    }
+
+    /**
      * Parses a filter date and its optional sharp modifier.
      *
      * @param arguments Filter date followed by an optional sharp keyword.
