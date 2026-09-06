@@ -24,10 +24,11 @@ public class Ui implements AutoCloseable {
                         + " / ___ \\| |\\  |/ ___ \\ |__| |_| | |\\  | |_| / ___ \\\n"
                         + "/_/   \\_\\_| \\_/_/   \\_\\____\\___/|_| \\_|____/_/   \\_\\\n";
 
-        System.out.println(LINE);
-        System.out.println(banner);
-        System.out.println("Yo, it's Anaconda.");
-        System.out.println("What do you want?");
+        showToUser(
+                LINE,
+                banner,
+                "Yo, it's Anaconda.",
+                "What do you want?");
     }
 
     /**
@@ -43,7 +44,7 @@ public class Ui implements AutoCloseable {
      * Displays a separator around a response.
      */
     public void showLine() {
-        System.out.println(LINE);
+        showToUser(LINE);
     }
 
     /**
@@ -52,7 +53,7 @@ public class Ui implements AutoCloseable {
      * @param message Explanation of the error.
      */
     public void showError(String message) {
-        System.out.println("Oops! " + message);
+        showToUser("Oops! " + message);
     }
 
     /**
@@ -69,9 +70,9 @@ public class Ui implements AutoCloseable {
      * @param isFiltered Whether these tasks are a search result.
      */
     public void showTasks(List<Task> tasks, boolean isFiltered) {
-        System.out.println(isFiltered ? "Matching tasks:" : "Your list:");
+        showToUser(isFiltered ? "Matching tasks:" : "Your list:");
         for (int i = 0; i < tasks.size(); i++) {
-            System.out.println((i + 1) + "." + tasks.get(i));
+            showToUser((i + 1) + "." + tasks.get(i));
         }
     }
 
@@ -81,9 +82,9 @@ public class Ui implements AutoCloseable {
      * @param tasks Matching tasks in their original order.
      */
     public void showFindResults(List<Task> tasks) {
-        System.out.println("Here are the matching tasks in your list:");
+        showToUser("Here are the matching tasks in your list:");
         for (int i = 0; i < tasks.size(); i++) {
-            System.out.println((i + 1) + "." + tasks.get(i));
+            showToUser((i + 1) + "." + tasks.get(i));
         }
     }
 
@@ -94,9 +95,10 @@ public class Ui implements AutoCloseable {
      * @param taskCount Number of tasks now stored.
      */
     public void showTaskAdded(Task task, int taskCount) {
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
-        showTaskCount(taskCount);
+        showToUser(
+                "Got it. I've added this task:",
+                "  " + task,
+                "Now you have " + taskCount + " tasks in the list.");
     }
 
     /**
@@ -106,9 +108,10 @@ public class Ui implements AutoCloseable {
      * @param taskCount Number of tasks remaining.
      */
     public void showTaskRemoved(Task task, int taskCount) {
-        System.out.println("Noted. I've removed this task:");
-        System.out.println("  " + task);
-        showTaskCount(taskCount);
+        showToUser(
+                "Noted. I've removed this task:",
+                "  " + task,
+                "Now you have " + taskCount + " tasks in the list.");
     }
 
     /**
@@ -118,45 +121,48 @@ public class Ui implements AutoCloseable {
      * @param isDone Whether the task was marked as completed.
      */
     public void showMarked(Task task, boolean isDone) {
-        System.out.println(isDone ? "Marked it done for you:" : "Really? Unmarked? Alright . . .");
-        System.out.println("  " + task);
+        showToUser(
+                isDone ? "Marked it done for you:" : "Really? Unmarked? Alright . . .",
+                "  " + task);
     }
 
     /**
      * Asks the user to confirm clearing the list.
      */
     public void showClearQuestion() {
-        System.out.println("You sure? (yes/no)");
+        showToUser("You sure? (yes/no)");
     }
 
     /**
      * Reports that clearing the list was cancelled.
      */
     public void showClearCancelled() {
-        System.out.println("That's not a yes. Kept your tasks.");
+        showToUser("That's not a yes. Kept your tasks.");
     }
 
     /**
      * Reports that the task list was cleared.
      */
     public void showCleared() {
-        System.out.println("Fine. Everything's gone.");
+        showToUser("Fine. Everything's gone.");
     }
 
     /**
      * Displays the farewell message.
      */
     public void showGoodbye() {
-        showLine();
-        System.out.println("Alright, until next time.");
-        showLine();
+        showToUser(LINE, "Alright, until next time.", LINE);
     }
 
     /**
-     * Displays the current task count.
+     * Displays each supplied message on a separate line.
+     *
+     * @param messages Messages to display in order.
      */
-    private void showTaskCount(int taskCount) {
-        System.out.println("Now you have " + taskCount + " tasks in the list.");
+    private void showToUser(String... messages) {
+        for (String message : messages) {
+            System.out.println(message);
+        }
     }
 
     /**

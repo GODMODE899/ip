@@ -106,14 +106,21 @@ public class UiTest {
     }
 
     @Test
-    public void showTaskAddedAndRemoved_printsTaskAndSuppliedCount() {
+    public void showTaskAdded_taskAndSuppliedCount_printsThreeLines() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             Task task = new ToDo("book");
             ui.showTaskAdded(task, 12);
-            ui.showTaskRemoved(task, 0);
             assertEquals("Got it. I've added this task:\n  [T][ ] book\n"
-                    + "Now you have 12 tasks in the list.\n"
-                    + "Noted. I've removed this task:\n  [T][ ] book\n"
+                    + "Now you have 12 tasks in the list.\n", session.output());
+        }
+    }
+
+    @Test
+    public void showTaskRemoved_taskAndSuppliedCount_printsThreeLines() {
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            Task task = new ToDo("book");
+            ui.showTaskRemoved(task, 0);
+            assertEquals("Noted. I've removed this task:\n  [T][ ] book\n"
                     + "Now you have 0 tasks in the list.\n", session.output());
         }
     }
