@@ -96,8 +96,8 @@ public class TaskListTest {
         for (int number : new int[] {Integer.MIN_VALUE, -1, 0, 2, Integer.MAX_VALUE}) {
             for (boolean isDone : new boolean[] {true, false}) {
                 assertEquals("Task " + number + " does not exist.",
-                        assertThrows(AnacondaException.class,
-                                () -> tasks.mark(number, isDone)).getMessage());
+                        assertThrows(AnacondaException.class, () ->
+                                tasks.mark(number, isDone)).getMessage());
                 assertFalse(task.isDone());
                 assertEquals(List.of(task), tasks.asList());
             }
