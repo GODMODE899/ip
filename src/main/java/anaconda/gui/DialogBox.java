@@ -19,6 +19,8 @@ import javafx.scene.layout.HBox;
  * and a label containing text from the speaker.
  */
 public class DialogBox extends HBox {
+    private static final double FADED_OPACITY = 0.5;
+
     @FXML
     private Label dialog;
     @FXML
@@ -47,6 +49,13 @@ public class DialogBox extends HBox {
         getChildren().setAll(children);
         setAlignment(Pos.TOP_LEFT);
         dialog.getStyleClass().add("reply-label");
+    }
+
+    /**
+     * Fades the speaker image while leaving the response text fully visible.
+     */
+    void fadeDisplayPicture() {
+        displayPicture.setOpacity(FADED_OPACITY);
     }
 
     /**

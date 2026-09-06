@@ -13,6 +13,8 @@ import javafx.scene.layout.VBox;
  * Controller for the main GUI.
  */
 public class MainWindow extends AnchorPane {
+    private static final String GOODBYE_RESPONSE = "Alright, until next time.";
+
     @FXML
     private ScrollPane scrollPane;
     @FXML
@@ -51,9 +53,13 @@ public class MainWindow extends AnchorPane {
     private void handleUserInput() {
         String input = userInput.getText();
         String response = anaconda.getResponse(input);
+        DialogBox anacondaDialog = DialogBox.getAnacondaDialog(response, anacondaImage);
+        if (GOODBYE_RESPONSE.equals(response)) {
+            anacondaDialog.fadeDisplayPicture();
+        }
         dialogContainer.getChildren().addAll(
                 DialogBox.getUserDialog(input, userImage),
-                DialogBox.getAnacondaDialog(response, anacondaImage)
+                anacondaDialog
         );
         userInput.clear();
     }

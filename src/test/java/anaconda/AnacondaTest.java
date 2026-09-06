@@ -136,7 +136,7 @@ public class AnacondaTest {
                 "  [T][ ] book",
                 "Now you have 1 tasks in the list."), anaconda.getResponse("todo book"));
         assertEquals("You sure? (yes/no)", anaconda.getResponse("clear"));
-        assertEquals("That's not a yes. Kept your tasks.", anaconda.getResponse("no"));
+        assertEquals("That's not a yes. Kept your tasks.", anaconda.getResponse("bye"));
         assertEquals(String.join(lineSeparator,
                 "Your list:",
                 "1.[T][ ] book"), anaconda.getResponse("list"));
