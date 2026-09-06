@@ -110,17 +110,17 @@ public class StorageTest {
     }
 
     @Test
-    public void loadTasks_directoryInsteadOfFile_throwsIOException() {
+    public void loadTasks_directoryInsteadOfFile_throwsIoException() {
         assertThrows(IOException.class, () -> new Storage(temporaryDirectory).loadTasks());
     }
 
     @Test
-    public void saveTasks_directoryInsteadOfFile_throwsIOException() {
+    public void saveTasks_directoryInsteadOfFile_throwsIoException() {
         assertThrows(IOException.class, () -> new Storage(temporaryDirectory).saveTasks(List.of()));
     }
 
     @Test
-    public void saveTasks_parentIsAFile_throwsIOException() throws IOException {
+    public void saveTasks_parentIsAFile_throwsIoException() throws IOException {
         Path parentFile = Files.createFile(temporaryDirectory.resolve("not-a-folder"));
         Storage storage = new Storage(parentFile.resolve("tasks.txt"));
         assertThrows(IOException.class, () -> storage.saveTasks(List.of(new ToDo("book"))));

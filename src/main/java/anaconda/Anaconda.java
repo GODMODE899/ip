@@ -124,6 +124,8 @@ public class Anaconda {
             case BYE:
                 // Standalone bye commands are handled by the run loop.
                 break;
+            default:
+                throw new IllegalStateException("Unsupported command: " + command);
         }
         return false;
     }
