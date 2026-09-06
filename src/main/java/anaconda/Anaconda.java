@@ -1,6 +1,9 @@
 package anaconda;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 import anaconda.exception.AnacondaException;
@@ -21,6 +24,14 @@ public class Anaconda {
     private final TaskList tasks;
     private final Ui ui;
     private final Parser parser;
+    private boolean isAwaitingGuiClearConfirmation;
+
+    /**
+     * Creates the chatbot using the default relative data path.
+     */
+    public Anaconda() {
+        this(DATA_FILE);
+    }
 
     /**
      * Creates the chatbot and loads its existing tasks.
@@ -71,6 +82,44 @@ public class Anaconda {
 
         ui.close();
         ui.showGoodbye();
+    }
+
+    /**
+     * Processes one GUI command and returns the same response text used by the console interface.
+     *
+     * @param input Complete user input.
+     * @return Response to display in the GUI.
+     */
+    public String getResponse(String input) {
+        if (!isAwaitingGuiClearConfirmation && parser.isExitCommand(input)) {
+            return "Alright, until next time.";
+        }
+
+        ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
+        PrintStream originalOutput = System.out;
+        try (PrintStream responseOutput = new PrintStream(responseBuffer, true, StandardCharsets.UTF_8)) {
+            System.setOut(responseOutput);
+            processGuiInput(input);
+        } finally {
+            System.setOut(originalOutput);
+        }
+        return responseBuffer.toString(StandardCharsets.UTF_8).stripTrailing();
+    }
+
+    /**
+     * Processes a GUI command or a pending clear confirmation using the existing command handlers.
+     */
+    private void processGuiInput(String input) {
+        try {
+            if (isAwaitingGuiClearConfirmation) {
+                isAwaitingGuiClearConfirmation = false;
+                clearTasksIfConfirmed(input);
+            } else {
+                isAwaitingGuiClearConfirmation = handleCommand(input);
+            }
+        } catch (AnacondaException exception) {
+            ui.showError(exception.getMessage());
+        }
     }
 
     /**

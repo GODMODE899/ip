@@ -125,6 +125,29 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getResponse_commandsAndClearConfirmation_returnsExistingMessagesAndUpdatesStorage()
+            throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        String lineSeparator = System.lineSeparator();
+
+        assertEquals(String.join(lineSeparator,
+                "Got it. I've added this task:",
+                "  [T][ ] book",
+                "Now you have 1 tasks in the list."), anaconda.getResponse("todo book"));
+        assertEquals("You sure? (yes/no)", anaconda.getResponse("clear"));
+        assertEquals("That's not a yes. Kept your tasks.", anaconda.getResponse("bye"));
+        assertEquals(String.join(lineSeparator,
+                "Your list:",
+                "1.[T][ ] book"), anaconda.getResponse("list"));
+        assertEquals("Oops! I don't recognize that command.", anaconda.getResponse("unknown"));
+        assertEquals("You sure? (yes/no)", anaconda.getResponse("clear"));
+        assertEquals("Fine. Everything's gone.", anaconda.getResponse("yes"));
+        assertEquals("Alright, until next time.", anaconda.getResponse("bye"));
+        assertTrue(Files.readAllLines(file).isEmpty());
+    }
+
+    @Test
     public void constructor_unreadableDataFile_reportsErrorAndStartsEmpty() {
         String output = runSession(temporaryDirectory, "list\nbye\n");
         assertTrue(output.startsWith("Oops! I couldn't load your saved tasks.\n"));
