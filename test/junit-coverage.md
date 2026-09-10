@@ -52,5 +52,8 @@ locale tests restore the original formatting locale in `finally`.
 List-rendering tests also verify that full lists, date-filter results, and description-search subsets
 restart numbering at one and preserve the order of the displayed tasks.
 
+Date-filter tests reject non-filter commands and null directions at the parser and task-list APIs,
+including empty lists and sharp matching. Valid BY/FROM behavior retains its existing boundary coverage.
+
 The separate console regression plan in `test/ui-test-plan.md` remains useful alongside these JUnit tests.
 Its session transcript presents each input immediately followed by its output.
