@@ -201,7 +201,7 @@ public class AnacondaTest {
     }
 
     @Test
-    public void getResponse_undoEveryMutation_restoresSavedTasksAndExhaustsHistory() throws IOException {
+    public void getResponse_undoAndRedoEveryMutation_restoresSavedTasksAndExhaustsHistory() throws IOException {
         List<String> original = List.of("T | 0 | book", "D | 1 | report | 2026-09-10",
                 "E | 0 | meeting | 2026-09-09 | 2026-09-11");
         String[] commands = {"todo new book", "deadline new report /by 2026-09-12",
@@ -214,11 +214,146 @@ public class AnacondaTest {
             if (commands[i].equals("clear")) {
                 assertEquals("Fine. Everything's gone.", anaconda.getResponse("yes"));
             }
+            List<String> changed = Files.readAllLines(file);
 
             assertEquals("Undid the previous command.", anaconda.getResponse("undo"), commands[i]);
             assertEquals(original, Files.readAllLines(file), commands[i]);
             assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+            assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"), commands[i]);
+            assertEquals(changed, Files.readAllLines(file), commands[i]);
+            assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+            assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+            assertEquals(original, Files.readAllLines(file), commands[i]);
+            assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
         }
+    }
+
+    @Test
+    public void getResponse_repeatedUndoUndo_reappliesChangesInOrder() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        anaconda.getResponse("mark 1");
+        anaconda.getResponse("clear");
+        anaconda.getResponse("yes");
+        anaconda.getResponse("undo");
+        anaconda.getResponse("undo");
+        anaconda.getResponse("undo");
+
+        assertEquals("Undid the previous undo.", anaconda.getResponse("  UnDo\t UnDo  "));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
+        assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"));
+        assertEquals(List.of("T | 1 | book"), Files.readAllLines(file));
+        assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"));
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+    }
+
+    @Test
+    public void getResponse_otherInputAfterUndo_endsRedoChainButPreservesUndoHistory() throws IOException {
+        String[] inputs = {"list", "find book", "/by 2026-09-10", "/from 2026-09-10 sharp",
+            "unknown", "", "mark 0", "delete 2", "todo", "undo extra", "undo undo undo", "list extra", "bye"};
+        for (int i = 0; i < inputs.length; i++) {
+            Path file = temporaryDirectory.resolve("tasks-" + i + ".txt");
+            Anaconda anaconda = new Anaconda(file);
+            anaconda.getResponse("todo book");
+            anaconda.getResponse("mark 1");
+            anaconda.getResponse("undo");
+            anaconda.getResponse(inputs[i]);
+
+            assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"), inputs[i]);
+            assertEquals(List.of("T | 0 | book"), Files.readAllLines(file), inputs[i]);
+            assertEquals("Undid the previous command.", anaconda.getResponse("undo"), inputs[i]);
+            assertTrue(Files.readAllLines(file).isEmpty(), inputs[i]);
+            assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"), inputs[i]);
+            assertEquals(List.of("T | 0 | book"), Files.readAllLines(file), inputs[i]);
+            assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"), inputs[i]);
+        }
+    }
+
+    @Test
+    public void getResponse_newMutationAfterUndo_discardsOldRedoStates() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        anaconda.getResponse("mark 1");
+        anaconda.getResponse("undo");
+        anaconda.getResponse("todo report");
+
+        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals(List.of("T | 0 | book", "T | 0 | report"), Files.readAllLines(file));
+        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"));
+        assertEquals(List.of("T | 0 | book", "T | 0 | report"), Files.readAllLines(file));
+        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+    }
+
+    @Test
+    public void getResponse_clearCancelledByUndoUndo_endsChainAndKeepsTasks() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        anaconda.getResponse("mark 1");
+        anaconda.getResponse("undo");
+        assertEquals("You sure? (yes/no)", anaconda.getResponse("clear"));
+        assertEquals("That's not a yes. Kept your tasks.", anaconda.getResponse("undo undo"));
+        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
+        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(Files.readAllLines(file).isEmpty());
+    }
+
+    @Test
+    public void getResponse_undoUndoWithoutHistory_reportsErrorWithoutSaving() {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertFalse(Files.exists(file));
+    }
+
+    @Test
+    public void getResponse_undoUndoAfterRestart_hasNoSessionHistory() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        anaconda.getResponse("mark 1");
+        anaconda.getResponse("undo");
+        Anaconda restarted = new Anaconda(file);
+        assertEquals("Oops! There is no undo to reverse.", restarted.getResponse("undo undo"));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
+    }
+
+    @Test
+    public void getResponse_failedRedoSave_keepsCurrentStateAndAllowsRetry() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        anaconda.getResponse("mark 1");
+        anaconda.getResponse("undo");
+        Files.delete(file);
+        Files.createDirectory(file);
+
+        assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse("undo undo"));
+        Files.delete(file);
+        assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"));
+        assertEquals(List.of("T | 1 | book"), Files.readAllLines(file));
+        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
+        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void run_undoUndo_restoresChangesUntilAnotherCommandEndsChain() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file,
+                "todo book\nmark 1\nundo\nundo undo\nundo\nlist\nundo undo\nbye\n");
+        assertTrue(output.contains("Undid the previous undo."));
+        assertTrue(output.contains("Your list:\n1.[T][ ] book\n"));
+        assertTrue(output.contains("Oops! There is no undo to reverse."));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
     @Test
@@ -320,6 +455,7 @@ public class AnacondaTest {
         Files.createDirectory(file);
 
         assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse("undo"));
+        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertTrue(anaconda.getResponse("list").contains("[T][X] book"));
         Files.delete(file);
         assertEquals("Undid the previous command.", anaconda.getResponse("undo"));

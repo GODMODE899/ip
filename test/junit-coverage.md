@@ -37,6 +37,9 @@ from corrupted storage files. Corrupted-file recovery remains outside the implem
 Undo coverage includes parser syntax, the UI confirmation, reusable task snapshots, all seven mutation
 commands, repeated undo, restored task types/order/dates/statuses, empty history, no-op mutations,
 non-mutating and invalid commands, cancelled clears, session restart, and retry after save failures.
+`undo undo` coverage includes reversing all seven mutation types, repeated and alternating undo/redo,
+chain interruption by other commands and invalid input, new mutations, clear cancellation, empty and
+exhausted history, restart, case/whitespace handling, invalid arguments, and rollback/retry after save failure.
 Both console and GUI command entry points are exercised. See [undo behavior](../docs/undo.md).
 
 Use Java 25. From the repository root in PowerShell:

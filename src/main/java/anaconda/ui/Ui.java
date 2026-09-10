@@ -182,6 +182,13 @@ public class Ui implements AutoCloseable {
     }
 
     /**
+     * Reports that the previous undo was reversed and saved.
+     */
+    public void showRedo() {
+        showToUser("Undid the previous undo.");
+    }
+
+    /**
      * Displays the farewell message.
      */
     public void showGoodbye() {

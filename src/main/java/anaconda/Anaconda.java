@@ -31,6 +31,10 @@ public class Anaconda {
      * States before successfully saved mutations, most recent first; history lasts for this session.
      */
     private final Deque<TaskList.Snapshot> undoHistory = new ArrayDeque<>();
+    /**
+     * States reversed by undo, most recent first; another command ends the current undo chain.
+     */
+    private final Deque<TaskList.Snapshot> redoHistory = new ArrayDeque<>();
     private boolean isAwaitingGuiClearConfirmation;
 
     /**
@@ -70,6 +74,7 @@ public class Anaconda {
         while (true) {
             String input = ui.readCommand();
             if (!isAwaitingClearConfirmation && parser.isExitCommand(input)) {
+                redoHistory.clear();
                 break;
             }
 
@@ -100,6 +105,7 @@ public class Anaconda {
      */
     public String getResponse(String input) {
         if (!isAwaitingGuiClearConfirmation && parser.isExitCommand(input)) {
+            redoHistory.clear();
             return "Alright, until next time.";
         }
 
@@ -136,7 +142,7 @@ public class Anaconda {
      * @throws AnacondaException If the command is invalid or saving fails.
      */
     private boolean handleCommand(String input, Ui responseUi) throws AnacondaException {
-        Parser.ParsedCommand parsedCommand = parser.parse(input);
+        Parser.ParsedCommand parsedCommand = parseAndUpdateUndoChain(input);
         Command command = parsedCommand.command();
         String arguments = parsedCommand.arguments();
 
@@ -144,7 +150,13 @@ public class Anaconda {
             case LIST -> responseUi.showTasks(tasks.asList(), false);
             case MARK, UNMARK -> changeTaskStatus(arguments, command == Command.MARK, responseUi);
             case DELETE -> deleteTask(arguments, responseUi);
-            case UNDO -> undoTaskChange(responseUi);
+            case UNDO -> {
+                if (arguments.isEmpty()) {
+                    undoTaskChange(responseUi);
+                } else {
+                    redoTaskChange(responseUi);
+                }
+            }
             case CLEAR -> {
                 responseUi.showClearQuestion();
                 return true;
@@ -158,6 +170,23 @@ public class Anaconda {
             default -> throw new IllegalStateException("Unsupported command: " + command);
         }
         return false;
+    }
+
+    /**
+     * Ends the undo chain on any input other than a valid undo or undo undo command.
+     * Ordinary undo history remains available after the chain ends.
+     */
+    private Parser.ParsedCommand parseAndUpdateUndoChain(String input) throws AnacondaException {
+        try {
+            Parser.ParsedCommand parsedCommand = parser.parse(input);
+            if (parsedCommand.command() != Command.UNDO) {
+                redoHistory.clear();
+            }
+            return parsedCommand;
+        } catch (AnacondaException exception) {
+            redoHistory.clear();
+            throw exception;
+        }
     }
 
     /**
@@ -232,7 +261,23 @@ public class Anaconda {
         tasks.restore(undoHistory.peek());
         saveOrRestore(currentState);
         undoHistory.pop();
+        redoHistory.push(currentState);
         responseUi.showUndo();
+    }
+
+    /**
+     * Reverses the most recent undo in this chain, moving history only after saving succeeds.
+     */
+    private void redoTaskChange(Ui responseUi) throws AnacondaException {
+        if (redoHistory.isEmpty()) {
+            throw new AnacondaException("There is no undo to reverse.");
+        }
+        TaskList.Snapshot currentState = tasks.snapshot();
+        tasks.restore(redoHistory.peek());
+        saveOrRestore(currentState);
+        redoHistory.pop();
+        undoHistory.push(currentState);
+        responseUi.showRedo();
     }
 
     /**

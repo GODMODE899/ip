@@ -198,6 +198,14 @@ public class UiTest {
     }
 
     @Test
+    public void showRedo_success_printsConfirmation() {
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            ui.showRedo();
+            assertEquals("Undid the previous undo.\n", session.output());
+        }
+    }
+
+    @Test
     public void close_readerClosed_furtherReadsThrowIllegalStateException() {
         try (ConsoleSession session = new ConsoleSession("bye\n")) {
             Ui ui = new Ui();
