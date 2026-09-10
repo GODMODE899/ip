@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import anaconda.task.Deadline;
 import anaconda.task.Event;
@@ -34,19 +35,17 @@ public class Storage {
      * Loads all tasks from the data file. An empty list is returned when the file
      * does not exist yet, which is expected when Anaconda is run for the first time.
      *
-     * @return Tasks stored in the data file.
+     * @return Mutable list of tasks stored in the data file, in their saved order.
      * @throws IOException If the existing data file cannot be read.
      */
     public ArrayList<Task> loadTasks() throws IOException {
-        ArrayList<Task> tasks = new ArrayList<>();
         if (!Files.exists(filePath)) {
-            return tasks;
+            return new ArrayList<>();
         }
 
-        for (String line : Files.readAllLines(filePath, StandardCharsets.UTF_8)) {
-            tasks.add(parseTask(line));
-        }
-        return tasks;
+        return Files.readAllLines(filePath, StandardCharsets.UTF_8).stream()
+                .map(this::parseTask)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -62,10 +61,9 @@ public class Storage {
             Files.createDirectories(parent);
         }
 
-        ArrayList<String> lines = new ArrayList<>();
-        for (Task task : tasks) {
-            lines.add(formatTask(task));
-        }
+        List<String> lines = tasks.stream()
+                .map(this::formatTask)
+                .toList();
         Files.write(filePath, lines, StandardCharsets.UTF_8);
     }
 

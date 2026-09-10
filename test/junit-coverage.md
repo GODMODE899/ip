@@ -49,5 +49,9 @@ Storage/application tests use JUnit `@TempDir`, never the project's `data/anacon
 Console tests restore `System.in`/`System.out` in try-with-resources and share a resource lock;
 locale tests restore the original formatting locale in `finally`.
 
+Stream-refactoring tests cover duplicate search matches, task identity and order, unmodifiable empty
+search results, mutable and independent loaded lists, and preservation of the saved file if task
+formatting fails. Existing cases cover date boundaries, empty lists, snapshots, and exact storage formats.
+
 The separate console regression plan in `test/ui-test-plan.md` remains useful alongside these JUnit tests.
 Its session transcript presents each input immediately followed by its output.

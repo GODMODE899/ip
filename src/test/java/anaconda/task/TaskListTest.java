@@ -147,6 +147,27 @@ public class TaskListTest {
     }
 
     @Test
+    public void find_duplicateMatches_preservesOccurrencesAndTaskIdentity() {
+        Task repeated = new ToDo("Read book");
+        Task another = new ToDo("Read book");
+        TaskList tasks = new TaskList(List.of(repeated, new ToDo("unrelated"), another, repeated));
+
+        List<Task> matches = tasks.find("BOOK");
+
+        assertEquals(List.of(repeated, another, repeated), matches);
+        assertSame(repeated, matches.getFirst());
+        assertSame(repeated, matches.getLast());
+        assertEquals(4, tasks.size());
+    }
+
+    @Test
+    public void find_emptyList_returnsUnmodifiableEmptyResult() {
+        List<Task> matches = new TaskList().find("book");
+        assertTrue(matches.isEmpty());
+        assertThrows(UnsupportedOperationException.class, () -> matches.add(new ToDo("book")));
+    }
+
+    @Test
     public void find_noMatchesOrLaterListChanges_returnsIndependentUnmodifiableSnapshot() {
         Task task = new ToDo("book");
         TaskList tasks = new TaskList(List.of(task));
@@ -197,6 +218,24 @@ public class TaskListTest {
         assertTrue(tasks.filterByDate(date.minusDays(1), Command.BY, false).isEmpty());
         assertTrue(tasks.filterByDate(date.plusDays(1), Command.FROM, false).isEmpty());
         assertTrue(tasks.filterByDate(date.plusDays(1), Command.BY, true).isEmpty());
+    }
+
+    @Test
+    public void filterByDate_duplicateMatches_preservesOccurrencesAndTaskIdentity() {
+        LocalDate date = LocalDate.of(2026, 8, 19);
+        Task repeated = new Deadline("book", date);
+        Task another = new Event("meeting", date.minusDays(1), date);
+        TaskList tasks = new TaskList(List.of(repeated, new ToDo("undated"), another, repeated));
+
+        for (Command direction : new Command[] {Command.BY, Command.FROM}) {
+            for (boolean isSharp : new boolean[] {false, true}) {
+                List<Task> matches = tasks.filterByDate(date, direction, isSharp);
+                assertEquals(List.of(repeated, another, repeated), matches);
+                assertSame(repeated, matches.getFirst());
+                assertSame(repeated, matches.getLast());
+            }
+        }
+        assertEquals(4, tasks.size());
     }
 
     @Test
