@@ -1,5 +1,7 @@
 package anaconda.ui;
 
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Scanner;
 
@@ -11,7 +13,27 @@ import anaconda.task.Task;
 public class Ui implements AutoCloseable {
     private static final String LINE = "____________________________________________________________";
 
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
+    private final PrintStream output;
+
+    /**
+     * Creates a UI using the current console input and output streams.
+     */
+    public Ui() {
+        this(System.in, System.out);
+    }
+
+    /**
+     * Creates a UI with explicit input and output streams.
+     * Closing this UI closes its input reader, but leaves the supplied output open.
+     *
+     * @param input Input read by this UI.
+     * @param output Destination for messages, owned by the caller.
+     */
+    public Ui(InputStream input, PrintStream output) {
+        scanner = new Scanner(input);
+        this.output = output;
+    }
 
     /**
      * Displays the welcome banner and initial prompt.
@@ -166,7 +188,7 @@ public class Ui implements AutoCloseable {
      */
     private void showToUser(String... messages) {
         for (String message : messages) {
-            System.out.println(message);
+            output.println(message);
         }
     }
 

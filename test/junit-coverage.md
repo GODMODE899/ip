@@ -55,5 +55,8 @@ restart numbering at one and preserve the order of the displayed tasks.
 Date-filter tests reject non-filter commands and null directions at the parser and task-list APIs,
 including empty lists and sharp matching. Valid BY/FROM behavior retains its existing boundary coverage.
 
+Stream-isolation tests cover explicitly supplied UI input/output, caller ownership of the output stream,
+and continued console use after successful and invalid GUI commands. Unicode responses retain UTF-8 text.
+
 The separate console regression plan in `test/ui-test-plan.md` remains useful alongside these JUnit tests.
 Its session transcript presents each input immediately followed by its output.

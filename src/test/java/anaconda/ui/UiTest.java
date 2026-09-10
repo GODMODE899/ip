@@ -3,6 +3,10 @@ package anaconda.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,6 +25,26 @@ import anaconda.testutil.ConsoleSession;
 @ResourceLock("SYSTEM_STREAMS")
 public class UiTest {
     private static final String LINE = "____________________________________________________________\n";
+
+    @Test
+    public void constructor_suppliedStreams_isolatesInputAndOutputAndLeavesOutputOpen() {
+        ByteArrayInputStream input = new ByteArrayInputStream("custom input\n".getBytes(StandardCharsets.UTF_8));
+        ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
+        try (ConsoleSession session = new ConsoleSession("console input\n");
+                PrintStream output = new PrintStream(outputBuffer, true, StandardCharsets.UTF_8)) {
+            try (Ui ui = new Ui(input, output)) {
+                assertEquals("custom input", ui.readCommand());
+                ui.showError("Custom error.");
+            }
+            output.println("Still open.");
+            assertEquals("Oops! Custom error.\nStill open.\n",
+                    outputBuffer.toString(StandardCharsets.UTF_8).replace("\r\n", "\n"));
+            assertEquals("", session.output());
+            try (Ui consoleUi = new Ui()) {
+                assertEquals("console input", consoleUi.readCommand());
+            }
+        }
+    }
 
     @Test
     public void readCommand_multipleLines_trimsEdgesAndPreservesInternalWhitespace() {
