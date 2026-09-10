@@ -148,6 +148,33 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getResponse_taskUpdates_persistsOnlyTheSelectedTaskChange() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Files.writeString(file, "T | 0 | first\nT | 0 | second\n");
+        Anaconda anaconda = new Anaconda(file);
+
+        assertTrue(anaconda.getResponse("mark 2").contains("[T][X] second"));
+        assertEquals(List.of("T | 0 | first", "T | 1 | second"), Files.readAllLines(file));
+        assertTrue(anaconda.getResponse("unmark 2").contains("[T][ ] second"));
+        assertEquals(List.of("T | 0 | first", "T | 0 | second"), Files.readAllLines(file));
+        assertTrue(anaconda.getResponse("delete 1").contains("[T][ ] first"));
+        assertEquals(List.of("T | 0 | second"), Files.readAllLines(file));
+    }
+
+    @Test
+    public void getResponse_failedTaskMutationSave_reportsOnlyError() throws IOException {
+        for (String command : new String[] {"todo book", "mark 1", "unmark 1", "delete 1"}) {
+            Path file = temporaryDirectory.resolve(command.replace(' ', '-'));
+            Files.writeString(file, "T | 1 | existing task\n");
+            Anaconda anaconda = new Anaconda(file);
+            Files.delete(file);
+            Files.createDirectory(file);
+
+            assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse(command), command);
+        }
+    }
+
+    @Test
     public void constructor_unreadableDataFile_reportsErrorAndStartsEmpty() {
         String output = runSession(temporaryDirectory, "list\nbye\n");
         assertTrue(output.startsWith("Oops! I couldn't load your saved tasks.\n"));

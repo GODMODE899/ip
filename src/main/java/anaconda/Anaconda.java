@@ -135,48 +135,66 @@ public class Anaconda {
         String arguments = parsedCommand.arguments();
 
         switch (command) {
-            case LIST:
-                ui.showTasks(tasks.asList(), false);
-                break;
-            case MARK:
-                Task markedTask = tasks.mark(parser.parseTaskNumber(arguments), true);
-                saveTasks();
-                ui.showMarked(markedTask, true);
-                break;
-            case UNMARK:
-                Task unmarkedTask = tasks.mark(parser.parseTaskNumber(arguments), false);
-                saveTasks();
-                ui.showMarked(unmarkedTask, false);
-                break;
-            case DELETE:
-                Task removedTask = tasks.delete(parser.parseTaskNumber(arguments));
-                saveTasks();
-                ui.showTaskRemoved(removedTask, tasks.size());
-                break;
-            case CLEAR:
+            case LIST -> ui.showTasks(tasks.asList(), false);
+            case MARK, UNMARK -> changeTaskStatus(arguments, command == Command.MARK);
+            case DELETE -> deleteTask(arguments);
+            case CLEAR -> {
                 ui.showClearQuestion();
                 return true;
-            case FIND:
-                String keyword = parser.parseKeyword(arguments);
-                ui.showFindResults(tasks.find(keyword));
-                break;
-            case TODO, DEADLINE, EVENT:
-                Task task = parser.parseTask(command, arguments);
-                tasks.add(task);
-                saveTasks();
-                ui.showTaskAdded(task, tasks.size());
-                break;
-            case BY, FROM:
-                Parser.DateFilter filter = parser.parseDateFilter(arguments, command);
-                ui.showTasks(tasks.filterByDate(filter.date(), command, filter.isSharp()), true);
-                break;
-            case BYE:
-                // Standalone bye commands are handled by the run loop.
-                break;
-            default:
-                throw new IllegalStateException("Unsupported command: " + command);
+            }
+            case FIND -> findTasks(arguments);
+            case TODO, DEADLINE, EVENT -> addTask(command, arguments);
+            case BY, FROM -> filterTasksByDate(command, arguments);
+            case BYE -> {
+                // Console and GUI entry points handle standalone bye commands before dispatch.
+            }
+            default -> throw new IllegalStateException("Unsupported command: " + command);
         }
         return false;
+    }
+
+    /**
+     * Updates a task's completion state and reports success only after saving.
+     */
+    private void changeTaskStatus(String arguments, boolean isDone) throws AnacondaException {
+        Task task = tasks.mark(parser.parseTaskNumber(arguments), isDone);
+        saveTasks();
+        ui.showMarked(task, isDone);
+    }
+
+    /**
+     * Removes the selected task and reports success only after saving.
+     */
+    private void deleteTask(String arguments) throws AnacondaException {
+        Task removedTask = tasks.delete(parser.parseTaskNumber(arguments));
+        saveTasks();
+        ui.showTaskRemoved(removedTask, tasks.size());
+    }
+
+    /**
+     * Creates a task and reports success only after saving.
+     */
+    private void addTask(Command command, String arguments) throws AnacondaException {
+        Task task = parser.parseTask(command, arguments);
+        tasks.add(task);
+        saveTasks();
+        ui.showTaskAdded(task, tasks.size());
+    }
+
+    /**
+     * Displays tasks matching a validated description keyword.
+     */
+    private void findTasks(String arguments) throws AnacondaException {
+        String keyword = parser.parseKeyword(arguments);
+        ui.showFindResults(tasks.find(keyword));
+    }
+
+    /**
+     * Displays tasks matching a validated date filter.
+     */
+    private void filterTasksByDate(Command command, String arguments) throws AnacondaException {
+        Parser.DateFilter filter = parser.parseDateFilter(arguments, command);
+        ui.showTasks(tasks.filterByDate(filter.date(), command, filter.isSharp()), true);
     }
 
     /**
