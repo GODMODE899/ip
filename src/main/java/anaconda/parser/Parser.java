@@ -214,6 +214,9 @@ public class Parser {
             throw new AnacondaException("An event needs both '/from' and '/to' times.");
         }
 
+        // The /to search starts after /from, so extracting the start date must use ordered bounds.
+        assert toPosition >= fromPosition + "/from".length() : "Event markers must not overlap or be reversed";
+
         String description = arguments.substring(0, fromPosition).trim();
         String fromText = arguments.substring(fromPosition + "/from".length(), toPosition).trim();
         String toText = arguments.substring(toPosition + "/to".length()).trim();

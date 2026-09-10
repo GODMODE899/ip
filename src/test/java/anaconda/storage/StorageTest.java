@@ -85,6 +85,19 @@ public class StorageTest {
     }
 
     @Test
+    public void saveTasks_unsupportedTaskType_throwsAssertionErrorWithoutOverwritingFile() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String saved = "T | 0 | existing task\n";
+        Files.writeString(file, saved);
+        Storage storage = new Storage(file);
+
+        assertEquals("Only ToDo tasks may use the T storage format",
+                assertThrows(AssertionError.class, () -> storage.saveTasks(
+                        List.of(new ToDo("valid task"), new Task("unsupported task")))).getMessage());
+        assertEquals(saved, Files.readString(file));
+    }
+
+    @Test
     public void saveTasks_shorterOrEmptyList_replacesRatherThanAppends() throws IOException {
         Path file = temporaryDirectory.resolve("tasks.txt");
         Storage storage = new Storage(file);

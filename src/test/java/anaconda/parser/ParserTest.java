@@ -108,6 +108,15 @@ public class ParserTest {
     }
 
     @Test
+    public void parseTask_eventDescriptionContainsToMarker_usesToMarkerAfterFrom() throws AnacondaException {
+        Event task = assertInstanceOf(Event.class,
+                parser.parseTask(Command.EVENT, "explain /to syntax /from 2026-08-18 /to 2026-08-19"));
+        assertEquals("explain /to syntax", task.getDescription());
+        assertEquals(LocalDate.of(2026, 8, 18), task.getFrom());
+        assertEquals(LocalDate.of(2026, 8, 19), task.getTo());
+    }
+
+    @Test
     public void parseTask_emptyDescriptions_throwsHelpfulException() {
         assertEquals("The description of a todo cannot be empty.",
                 assertThrows(AnacondaException.class, () ->
@@ -149,6 +158,7 @@ public class ParserTest {
     public void parseTask_emptyEventDates_throwsException() {
         String[] argumentsWithMissingDates = {
             "meeting /from /to 2026-08-19",
+            "meeting /from/to 2026-08-19",
             "meeting /from 2026-08-18 /to",
             "meeting /from /to"
         };

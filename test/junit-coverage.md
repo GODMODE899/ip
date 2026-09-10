@@ -49,6 +49,12 @@ Storage/application tests use JUnit `@TempDir`, never the project's `data/anacon
 Console tests restore `System.in`/`System.out` in try-with-resources and share a resource lock;
 locale tests restore the original formatting locale in `finally`.
 
+Gradle explicitly enables Java assertions for tests. The [assertion rationale](../docs/assertions.md)
+documents each internal assumption and its regression coverage, including faulty completion overrides,
+unsupported storage task types, event-marker boundaries, and task-index boundaries. The child JVM in
+`AnacondaTest.main_newWorkingDirectory_usesRelativeDefaultDataPath` retains Java's default disabled
+assertions to check normal task creation and persistence in that mode as well.
+
 List-rendering tests also verify that full lists, date-filter results, and description-search subsets
 restart numbering at one and preserve the order of the displayed tasks.
 
