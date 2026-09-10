@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,22 @@ public class StorageTest {
     public void loadTasks_emptyFile_returnsEmptyList() throws IOException {
         Path file = Files.createFile(temporaryDirectory.resolve("tasks.txt"));
         assertTrue(new Storage(file).loadTasks().isEmpty());
+    }
+
+    @Test
+    public void loadTasks_missingOrExistingFile_returnsMutableIndependentLists() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Storage storage = new Storage(file);
+        ArrayList<Task> initialTasks = storage.loadTasks();
+        initialTasks.add(new ToDo("unsaved task"));
+        assertFalse(Files.exists(file));
+
+        Files.writeString(file, "T | 0 | saved task\n");
+        ArrayList<Task> loadedTasks = storage.loadTasks();
+        loadedTasks.clear();
+        loadedTasks.add(new ToDo("replacement"));
+        assertEquals(List.of("T | 0 | saved task"), Files.readAllLines(file));
+        assertEquals("saved task", storage.loadTasks().getFirst().getDescription());
     }
 
     @Test
@@ -94,6 +111,24 @@ public class StorageTest {
         assertEquals("Only ToDo tasks may use the T storage format",
                 assertThrows(AssertionError.class, () -> storage.saveTasks(
                         List.of(new ToDo("valid task"), new Task("unsupported task")))).getMessage());
+        assertEquals(saved, Files.readString(file));
+    }
+
+    @Test
+    public void saveTasks_formattingFailure_preservesExistingFile() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String saved = "T | 0 | existing task\n";
+        Files.writeString(file, saved);
+        Task brokenTask = new ToDo("broken task") {
+            @Override
+            public String getDescription() {
+                throw new IllegalStateException("Cannot format task");
+            }
+        };
+        Storage storage = new Storage(file);
+
+        assertThrows(IllegalStateException.class, () ->
+                storage.saveTasks(List.of(new ToDo("valid task"), brokenTask)));
         assertEquals(saved, Files.readString(file));
     }
 

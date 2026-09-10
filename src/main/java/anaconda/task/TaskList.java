@@ -100,17 +100,13 @@ public class TaskList {
      * Finds tasks whose descriptions contain the supplied keyword, ignoring case.
      *
      * @param keyword Text to search for in task descriptions.
-     * @return Matching tasks in their original order.
+     * @return Unmodifiable snapshot of matching tasks in their original order.
      */
     public List<Task> find(String keyword) {
         String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
-        ArrayList<Task> matchingTasks = new ArrayList<>();
-        for (Task task : tasks) {
-            if (task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword)) {
-                matchingTasks.add(task);
-            }
-        }
-        return List.copyOf(matchingTasks);
+        return tasks.stream()
+                .filter(task -> task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
+                .toList();
     }
 
     /**
@@ -119,34 +115,29 @@ public class TaskList {
      * @param filterDate Date to compare against.
      * @param direction BY for on-or-before, or FROM for on-or-after.
      * @param isSharp Whether only exact date matches should be returned.
-     * @return Matching tasks in their original order.
-     * @throws IllegalArgumentException If the direction is not BY or FROM.
+     * @return Unmodifiable snapshot of matching tasks in their original order.
      */
     public List<Task> filterByDate(LocalDate filterDate, Command direction, boolean isSharp) {
-        if (direction != Command.BY && direction != Command.FROM) {
-            throw new IllegalArgumentException("Command does not filter by date: " + direction);
-        }
+        return tasks.stream()
+                .filter(task -> matchesDateFilter(task.getEndDate(), filterDate, direction, isSharp))
+                .toList();
+    }
 
-        ArrayList<Task> matchingTasks = new ArrayList<>();
-        for (Task task : tasks) {
-            LocalDate endDate = task.getEndDate();
-            if (endDate == null) {
-                continue;
-            }
-
-            boolean isMatch;
-            if (isSharp) {
-                isMatch = endDate.equals(filterDate);
-            } else if (direction == Command.BY) {
-                isMatch = !endDate.isAfter(filterDate);
-            } else {
-                isMatch = !endDate.isBefore(filterDate);
-            }
-            if (isMatch) {
-                matchingTasks.add(task);
-            }
+    /**
+     * Tests a task's ending date against the filter, excluding undated tasks.
+     * Sharp filters require equality; other filters include the boundary date.
+     */
+    private boolean matchesDateFilter(LocalDate endDate, LocalDate filterDate, Command direction, boolean isSharp) {
+        if (endDate == null) {
+            return false;
         }
-        return List.copyOf(matchingTasks);
+        if (isSharp) {
+            return endDate.equals(filterDate);
+        }
+        if (direction == Command.BY) {
+            return !endDate.isAfter(filterDate);
+        }
+        return !endDate.isBefore(filterDate);
     }
 
     /**

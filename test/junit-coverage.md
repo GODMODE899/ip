@@ -64,5 +64,9 @@ including empty lists and sharp matching. Valid BY/FROM behavior retains its exi
 Stream-isolation tests cover explicitly supplied UI input/output, caller ownership of the output stream,
 and continued console use after successful and invalid GUI commands. Unicode responses retain UTF-8 text.
 
+Stream-refactoring tests cover duplicate search matches, task identity and order, unmodifiable empty
+search results, mutable and independent loaded lists, and preservation of the saved file if task
+formatting fails. Existing cases cover date boundaries, empty lists, snapshots, and exact storage formats.
+
 The separate console regression plan in `test/ui-test-plan.md` remains useful alongside these JUnit tests.
 Its session transcript presents each input immediately followed by its output.
