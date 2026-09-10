@@ -2,9 +2,12 @@ package anaconda;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -145,6 +148,56 @@ public class AnacondaTest {
         assertEquals("Fine. Everything's gone.", anaconda.getResponse("yes"));
         assertEquals("Alright, until next time.", anaconda.getResponse("bye"));
         assertTrue(Files.readAllLines(file).isEmpty());
+    }
+
+    @Test
+    public void getResponse_successAndError_keepsConsoleStreamsUsable() {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        try (ConsoleSession session = new ConsoleSession("list\nbye\n")) {
+            InputStream consoleInput = System.in;
+            PrintStream consoleOutput = System.out;
+            Anaconda anaconda = new Anaconda(file);
+
+            assertTrue(anaconda.getResponse("todo café 读书").contains("[T][ ] café 读书"));
+            assertEquals("Oops! I don't recognize that command.", anaconda.getResponse("unknown"));
+            assertSame(consoleInput, System.in);
+            assertSame(consoleOutput, System.out);
+            assertEquals("", session.output());
+
+            anaconda.run();
+            System.out.println("Console output still open.");
+            assertTrue(session.output().contains("Your list:\n1.[T][ ] café 读书\n"));
+            assertTrue(session.output().endsWith("Console output still open.\n"));
+            assertFalse(session.output().contains("Got it. I've added this task:"));
+            assertFalse(session.output().contains("Oops!"));
+        }
+    }
+
+    @Test
+    public void getResponse_taskUpdates_persistsOnlyTheSelectedTaskChange() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Files.writeString(file, "T | 0 | first\nT | 0 | second\n");
+        Anaconda anaconda = new Anaconda(file);
+
+        assertTrue(anaconda.getResponse("mark 2").contains("[T][X] second"));
+        assertEquals(List.of("T | 0 | first", "T | 1 | second"), Files.readAllLines(file));
+        assertTrue(anaconda.getResponse("unmark 2").contains("[T][ ] second"));
+        assertEquals(List.of("T | 0 | first", "T | 0 | second"), Files.readAllLines(file));
+        assertTrue(anaconda.getResponse("delete 1").contains("[T][ ] first"));
+        assertEquals(List.of("T | 0 | second"), Files.readAllLines(file));
+    }
+
+    @Test
+    public void getResponse_failedTaskMutationSave_reportsOnlyError() throws IOException {
+        for (String command : new String[] {"todo book", "mark 1", "unmark 1", "delete 1"}) {
+            Path file = temporaryDirectory.resolve(command.replace(' ', '-'));
+            Files.writeString(file, "T | 1 | existing task\n");
+            Anaconda anaconda = new Anaconda(file);
+            Files.delete(file);
+            Files.createDirectory(file);
+
+            assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse(command), command);
+        }
     }
 
     @Test

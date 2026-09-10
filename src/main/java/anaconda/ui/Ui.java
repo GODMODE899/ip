@@ -1,5 +1,7 @@
 package anaconda.ui;
 
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Scanner;
 
@@ -11,7 +13,27 @@ import anaconda.task.Task;
 public class Ui implements AutoCloseable {
     private static final String LINE = "____________________________________________________________";
 
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
+    private final PrintStream output;
+
+    /**
+     * Creates a UI using the current console input and output streams.
+     */
+    public Ui() {
+        this(System.in, System.out);
+    }
+
+    /**
+     * Creates a UI with explicit input and output streams.
+     * Closing this UI closes its input reader, but leaves the supplied output open.
+     *
+     * @param input Input read by this UI.
+     * @param output Destination for messages, owned by the caller.
+     */
+    public Ui(InputStream input, PrintStream output) {
+        scanner = new Scanner(input);
+        this.output = output;
+    }
 
     /**
      * Displays the welcome banner and initial prompt.
@@ -71,9 +93,7 @@ public class Ui implements AutoCloseable {
      */
     public void showTasks(List<Task> tasks, boolean isFiltered) {
         showToUser(isFiltered ? "Matching tasks:" : "Your list:");
-        for (int i = 0; i < tasks.size(); i++) {
-            showToUser((i + 1) + "." + tasks.get(i));
-        }
+        showNumberedTasks(tasks);
     }
 
     /**
@@ -83,6 +103,13 @@ public class Ui implements AutoCloseable {
      */
     public void showFindResults(List<Task> tasks) {
         showToUser("Here are the matching tasks in your list:");
+        showNumberedTasks(tasks);
+    }
+
+    /**
+     * Displays task rows with consecutive one-based numbers for every list view.
+     */
+    private void showNumberedTasks(List<Task> tasks) {
         for (int i = 0; i < tasks.size(); i++) {
             showToUser((i + 1) + "." + tasks.get(i));
         }
@@ -161,7 +188,7 @@ public class Ui implements AutoCloseable {
      */
     private void showToUser(String... messages) {
         for (String message : messages) {
-            System.out.println(message);
+            output.println(message);
         }
     }
 

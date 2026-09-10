@@ -3,6 +3,10 @@ package anaconda.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,6 +25,26 @@ import anaconda.testutil.ConsoleSession;
 @ResourceLock("SYSTEM_STREAMS")
 public class UiTest {
     private static final String LINE = "____________________________________________________________\n";
+
+    @Test
+    public void constructor_suppliedStreams_isolatesInputAndOutputAndLeavesOutputOpen() {
+        ByteArrayInputStream input = new ByteArrayInputStream("custom input\n".getBytes(StandardCharsets.UTF_8));
+        ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
+        try (ConsoleSession session = new ConsoleSession("console input\n");
+                PrintStream output = new PrintStream(outputBuffer, true, StandardCharsets.UTF_8)) {
+            try (Ui ui = new Ui(input, output)) {
+                assertEquals("custom input", ui.readCommand());
+                ui.showError("Custom error.");
+            }
+            output.println("Still open.");
+            assertEquals("Oops! Custom error.\nStill open.\n",
+                    outputBuffer.toString(StandardCharsets.UTF_8).replace("\r\n", "\n"));
+            assertEquals("", session.output());
+            try (Ui consoleUi = new Ui()) {
+                assertEquals("console input", consoleUi.readCommand());
+            }
+        }
+    }
 
     @Test
     public void readCommand_multipleLines_trimsEdgesAndPreservesInternalWhitespace() {
@@ -102,6 +126,22 @@ public class UiTest {
             assertEquals("Here are the matching tasks in your list:\n1.[T][X] read book\n"
                     + "2.[D][ ] return book (by: Aug 19 2026)\n"
                     + "Here are the matching tasks in your list:\n", session.output());
+        }
+    }
+
+    @Test
+    public void showFindResults_subsetOfTasks_numbersOnlyDisplayedTasks() {
+        Task first = new ToDo("first");
+        Task middle = new ToDo("middle");
+        Task last = new ToDo("last");
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            ui.showTasks(List.of(first, middle, last), false);
+            ui.showTasks(List.of(last), true);
+            ui.showFindResults(List.of(first, last));
+            assertEquals("Your list:\n1.[T][ ] first\n2.[T][ ] middle\n3.[T][ ] last\n"
+                    + "Matching tasks:\n1.[T][ ] last\n"
+                    + "Here are the matching tasks in your list:\n1.[T][ ] first\n2.[T][ ] last\n",
+                    session.output());
         }
     }
 

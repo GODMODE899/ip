@@ -23,7 +23,7 @@ not a claim of measured 100% line or branch coverage; no coverage instrumentatio
 | `Deadline` | Date getters, `toString` | Date retention, polymorphic end date, leading zero, both completion states, leap day, English month under a different locale |
 | `Event` | Date getters, `toString` | Distinct endpoints, polymorphic end date, year boundary, same-day event, both completion states, English month under a different locale |
 | `Ui` | All public methods, including `readCommand` and `close` | Exact messages, banner, list/search headers and numbering, empty lists, counts, clear prompts, input trimming, reader closure |
-| `Anaconda` | Constructor, `run`, `main` | Command dispatch, saved state after restart, invalid-command recovery, clear confirmation/cancellation, description search, date filters, load/save errors, relative default path in a child JVM |
+| `Anaconda` | Constructor, `run`, `getResponse`, `main` | Console/GUI command dispatch, saved state after restart, invalid-command recovery, clear confirmation/cancellation, description search, date filters, load/save errors, selected task updates, no success response after failed saves, relative default path in a child JVM |
 
 `Command` contains only enum constants, and `AnacondaException` only forwards a message to its superclass;
 neither has custom non-trivial methods needing a dedicated test class. Their behavior is exercised by parser
@@ -54,6 +54,15 @@ documents each internal assumption and its regression coverage, including faulty
 unsupported storage task types, event-marker boundaries, and task-index boundaries. The child JVM in
 `AnacondaTest.main_newWorkingDirectory_usesRelativeDefaultDataPath` retains Java's default disabled
 assertions to check normal task creation and persistence in that mode as well.
+
+List-rendering tests also verify that full lists, date-filter results, and description-search subsets
+restart numbering at one and preserve the order of the displayed tasks.
+
+Date-filter tests reject non-filter commands and null directions at the parser and task-list APIs,
+including empty lists and sharp matching. Valid BY/FROM behavior retains its existing boundary coverage.
+
+Stream-isolation tests cover explicitly supplied UI input/output, caller ownership of the output stream,
+and continued console use after successful and invalid GUI commands. Unicode responses retain UTF-8 text.
 
 Stream-refactoring tests cover duplicate search matches, task identity and order, unmodifiable empty
 search results, mutable and independent loaded lists, and preservation of the saved file if task
