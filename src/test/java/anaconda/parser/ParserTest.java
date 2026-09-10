@@ -63,6 +63,13 @@ public class ParserTest {
     }
 
     @Test
+    public void parse_undoCommand_acceptsCaseAndWhitespaceButRejectsArguments() throws AnacondaException {
+        assertEquals(new Parser.ParsedCommand(Command.UNDO, ""), parser.parse("  UnDo\t"));
+        assertEquals("The undo command does not take extra text.",
+                assertThrows(AnacondaException.class, () -> parser.parse("undo 1")).getMessage());
+    }
+
+    @Test
     public void isExitCommand_onlyStandaloneBye_returnsTrue() {
         assertTrue(parser.isExitCommand(" BYe\t"));
         for (String input : new String[] {"", "bye now", "goodbye", "todo bye"}) {

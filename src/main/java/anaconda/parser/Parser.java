@@ -60,6 +60,9 @@ public class Parser {
             case CLEAR:
                 requireNoArguments(arguments, "clear");
                 break;
+            case UNDO:
+                requireNoArguments(arguments, "undo");
+                break;
             case BYE:
                 if (!arguments.isEmpty()) {
                     throw new AnacondaException("The bye command cannot have extra text.");

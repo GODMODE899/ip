@@ -15,6 +15,24 @@ public class TaskList {
     private final ArrayList<Task> tasks;
 
     /**
+     * Captures task order and completion flags without exposing mutable snapshot contents.
+     * Descriptions and dates are immutable, so retaining the original task objects preserves their types.
+     */
+    public static final class Snapshot {
+        private final List<TaskState> taskStates;
+
+        private Snapshot(List<TaskState> taskStates) {
+            this.taskStates = taskStates;
+        }
+    }
+
+    /**
+     * Retains a task and its completion flag at the time a snapshot is taken.
+     */
+    private record TaskState(Task task, boolean isDone) {
+    }
+
+    /**
      * Creates an empty task list.
      */
     public TaskList() {
@@ -97,6 +115,34 @@ public class TaskList {
     }
 
     /**
+     * Captures task order and completion flags for later restoration.
+     *
+     * @return Snapshot unaffected by later additions, removals, or completion updates.
+     */
+    public Snapshot snapshot() {
+        return new Snapshot(tasks.stream()
+                .map(task -> new TaskState(task, task.isDone()))
+                .toList());
+    }
+
+    /**
+     * Restores the task objects, order, and completion flags captured by a snapshot.
+     *
+     * @param snapshot Previously captured state to restore.
+     */
+    public void restore(Snapshot snapshot) {
+        tasks.clear();
+        for (TaskState state : snapshot.taskStates) {
+            if (state.isDone()) {
+                state.task().markAsDone();
+            } else {
+                state.task().markAsUndone();
+            }
+            tasks.add(state.task());
+        }
+    }
+
+    /**
      * Finds tasks whose descriptions contain the supplied keyword, ignoring case.
      *
      * @param keyword Text to search for in task descriptions.
@@ -116,8 +162,12 @@ public class TaskList {
      * @param direction BY for on-or-before, or FROM for on-or-after.
      * @param isSharp Whether only exact date matches should be returned.
      * @return Unmodifiable snapshot of matching tasks in their original order.
+     * @throws IllegalArgumentException If the direction is not BY or FROM.
      */
     public List<Task> filterByDate(LocalDate filterDate, Command direction, boolean isSharp) {
+        if (direction != Command.BY && direction != Command.FROM) {
+            throw new IllegalArgumentException("Command does not filter by date: " + direction);
+        }
         return tasks.stream()
                 .filter(task -> matchesDateFilter(task.getEndDate(), filterDate, direction, isSharp))
                 .toList();
