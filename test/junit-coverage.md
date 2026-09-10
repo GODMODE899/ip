@@ -41,6 +41,8 @@ non-mutating and invalid commands, cancelled clears, session restart, and retry 
 chain interruption by other commands and invalid input, new mutations, clear cancellation, empty and
 exhausted history, restart, case/whitespace handling, invalid arguments, and rollback/retry after save failure.
 Both console and GUI command entry points are exercised. See [undo behavior](../docs/undo.md).
+Undo/redo responses also verify the displayed current list, including empty lists, restored task order,
+dates and statuses, and continuation of the undo chain after the automatic display.
 
 Use Java 25. From the repository root in PowerShell:
 

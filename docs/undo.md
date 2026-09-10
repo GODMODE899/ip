@@ -4,6 +4,8 @@ Type `undo` to reverse the most recent successfully saved task-changing command.
 It works for `todo`, `deadline`, `event`, `mark`, `unmark`, `delete`, and confirmed `clear` commands.
 Deleted or cleared tasks return in their original order, with their dates and completion statuses.
 The restored task list is saved automatically. Repeated `undo` commands walk backward through history.
+After each successful `undo` or `undo undo`, the response shows the current task list beneath the
+confirmation message. This automatic display does not end the undo chain.
 
 For example:
 

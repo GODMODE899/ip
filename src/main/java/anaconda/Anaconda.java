@@ -263,6 +263,7 @@ public class Anaconda {
         undoHistory.pop();
         redoHistory.push(currentState);
         responseUi.showUndo();
+        responseUi.showTasks(tasks.asList(), false);
     }
 
     /**
@@ -278,6 +279,7 @@ public class Anaconda {
         redoHistory.pop();
         undoHistory.push(currentState);
         responseUi.showRedo();
+        responseUi.showTasks(tasks.asList(), false);
     }
 
     /**

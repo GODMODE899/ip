@@ -216,13 +216,16 @@ public class AnacondaTest {
             }
             List<String> changed = Files.readAllLines(file);
 
-            assertEquals("Undid the previous command.", anaconda.getResponse("undo"), commands[i]);
+            assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                    + System.lineSeparator() + "Your list:"), commands[i]);
             assertEquals(original, Files.readAllLines(file), commands[i]);
             assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
-            assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"), commands[i]);
+            assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
+                    + System.lineSeparator() + "Your list:"), commands[i]);
             assertEquals(changed, Files.readAllLines(file), commands[i]);
             assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
-            assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+            assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                    + System.lineSeparator() + "Your list:"));
             assertEquals(original, Files.readAllLines(file), commands[i]);
             assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
         }
@@ -240,11 +243,14 @@ public class AnacondaTest {
         anaconda.getResponse("undo");
         anaconda.getResponse("undo");
 
-        assertEquals("Undid the previous undo.", anaconda.getResponse("  UnDo\t UnDo  "));
+        assertTrue(anaconda.getResponse("  UnDo\t UnDo  ").startsWith("Undid the previous undo."
+                + System.lineSeparator() + "Your list:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
-        assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"));
+        assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
+                + System.lineSeparator() + "Your list:"));
         assertEquals(List.of("T | 1 | book"), Files.readAllLines(file));
-        assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"));
+        assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
     }
@@ -263,9 +269,11 @@ public class AnacondaTest {
 
             assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"), inputs[i]);
             assertEquals(List.of("T | 0 | book"), Files.readAllLines(file), inputs[i]);
-            assertEquals("Undid the previous command.", anaconda.getResponse("undo"), inputs[i]);
+            assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                    + System.lineSeparator() + "Your list:"), inputs[i]);
             assertTrue(Files.readAllLines(file).isEmpty(), inputs[i]);
-            assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"), inputs[i]);
+            assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
+                    + System.lineSeparator() + "Your list:"), inputs[i]);
             assertEquals(List.of("T | 0 | book"), Files.readAllLines(file), inputs[i]);
             assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"), inputs[i]);
         }
@@ -282,8 +290,10 @@ public class AnacondaTest {
 
         assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertEquals(List.of("T | 0 | book", "T | 0 | report"), Files.readAllLines(file));
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
-        assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
+        assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
+                + System.lineSeparator() + "Your list:"));
         assertEquals(List.of("T | 0 | book", "T | 0 | report"), Files.readAllLines(file));
         assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
     }
@@ -299,7 +309,8 @@ public class AnacondaTest {
         assertEquals("That's not a yes. Kept your tasks.", anaconda.getResponse("undo undo"));
         assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
     }
 
@@ -335,14 +346,49 @@ public class AnacondaTest {
 
         assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse("undo undo"));
         Files.delete(file);
-        assertEquals("Undid the previous undo.", anaconda.getResponse("undo undo"));
+        assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
+                + System.lineSeparator() + "Your list:"));
         assertEquals(List.of("T | 1 | book"), Files.readAllLines(file));
         assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void getResponse_undoAndRedo_showsCurrentListWithoutEndingChain() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Files.write(file, List.of("T | 0 | book", "D | 1 | report | 2026-09-10",
+                "E | 0 | meeting | 2026-09-09 | 2026-09-11"));
+        Anaconda anaconda = new Anaconda(file);
+        String originalRows = "1.[T][ ] book\n2.[D][X] report (by: Sep 10 2026)\n"
+                + "3.[E][ ] meeting (from: Sep 09 2026 to: Sep 11 2026)";
+        anaconda.getResponse("delete 2");
+
+        assertEquals("Undid the previous command.\nYour list:\n" + originalRows,
+                anaconda.getResponse("undo").replace("\r\n", "\n"));
+        assertEquals("Undid the previous undo.\nYour list:\n1.[T][ ] book\n"
+                + "2.[E][ ] meeting (from: Sep 09 2026 to: Sep 11 2026)",
+                anaconda.getResponse("undo undo").replace("\r\n", "\n"));
+        assertEquals("Undid the previous command.\nYour list:\n" + originalRows,
+                anaconda.getResponse("undo").replace("\r\n", "\n"));
+
+        anaconda.getResponse("clear");
+        anaconda.getResponse("yes");
+        assertEquals("Undid the previous command.\nYour list:\n" + originalRows,
+                anaconda.getResponse("undo").replace("\r\n", "\n"));
+        assertEquals("Undid the previous undo.\nYour list:",
+                anaconda.getResponse("undo undo").replace("\r\n", "\n"));
+        assertEquals("Undid the previous command.\nYour list:\n" + originalRows,
+                anaconda.getResponse("undo").replace("\r\n", "\n"));
+        Anaconda initiallyEmpty = new Anaconda(temporaryDirectory.resolve("empty.txt"));
+        initiallyEmpty.getResponse("todo another");
+        assertEquals("Undid the previous command.\nYour list:",
+                initiallyEmpty.getResponse("undo").replace("\r\n", "\n"));
     }
 
     @Test
@@ -350,8 +396,8 @@ public class AnacondaTest {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file,
                 "todo book\nmark 1\nundo\nundo undo\nundo\nlist\nundo undo\nbye\n");
-        assertTrue(output.contains("Undid the previous undo."));
-        assertTrue(output.contains("Your list:\n1.[T][ ] book\n"));
+        assertTrue(output.contains("Undid the previous undo.\nYour list:\n1.[T][X] book\n"));
+        assertTrue(output.contains("Undid the previous command.\nYour list:\n1.[T][ ] book\n"));
         assertTrue(output.contains("Oops! There is no undo to reverse."));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
@@ -365,11 +411,14 @@ public class AnacondaTest {
         anaconda.getResponse("clear");
         anaconda.getResponse("yes");
 
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertEquals(List.of("T | 1 | book"), Files.readAllLines(file));
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
     }
@@ -385,7 +434,8 @@ public class AnacondaTest {
             "unknown", "mark 0", "delete 2", "todo", "undo extra", "clear", "no"}) {
             anaconda.getResponse(command);
         }
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
     }
@@ -404,7 +454,8 @@ public class AnacondaTest {
         anaconda.getResponse("undo");
         anaconda.getResponse("clear");
         anaconda.getResponse("yes");
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
     }
@@ -432,7 +483,8 @@ public class AnacondaTest {
         anaconda.getResponse("clear");
         assertEquals("That's not a yes. Kept your tasks.", anaconda.getResponse("undo"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
     }
 
@@ -458,9 +510,11 @@ public class AnacondaTest {
         assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertTrue(anaconda.getResponse("list").contains("[T][X] book"));
         Files.delete(file);
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
     }
 
@@ -477,7 +531,8 @@ public class AnacondaTest {
         assertTrue(anaconda.getResponse("list").contains("1.[T][ ] book"));
         assertFalse(anaconda.getResponse("list").contains("another"));
         Files.delete(file);
-        assertEquals("Undid the previous command.", anaconda.getResponse("undo"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
+                + System.lineSeparator() + "Your list:"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
     }
