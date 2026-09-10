@@ -110,6 +110,21 @@ public class StorageTest {
     }
 
     @Test
+    public void saveAndLoad_emptyTodoDescription_preservesTrailingField() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Files.writeString(file, "T | 0 | \n");
+        Storage storage = new Storage(file);
+        List<Task> tasks = storage.loadTasks();
+
+        assertEquals(1, tasks.size());
+        assertInstanceOf(ToDo.class, tasks.getFirst());
+        assertEquals("", tasks.getFirst().getDescription());
+        assertFalse(tasks.getFirst().isDone());
+        storage.saveTasks(tasks);
+        assertEquals(List.of("T | 0 | "), Files.readAllLines(file));
+    }
+
+    @Test
     public void loadTasks_directoryInsteadOfFile_throwsIoException() {
         assertThrows(IOException.class, () -> new Storage(temporaryDirectory).loadTasks());
     }

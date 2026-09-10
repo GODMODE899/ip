@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import anaconda.task.Deadline;
 import anaconda.task.Event;
@@ -18,6 +19,18 @@ import anaconda.task.ToDo;
  */
 public class Storage {
     private static final String FIELD_SEPARATOR = " | ";
+    private static final String TODO_TYPE = "T";
+    private static final String DEADLINE_TYPE = "D";
+    private static final String EVENT_TYPE = "E";
+    private static final String DONE_STATUS = "1";
+    private static final String UNDONE_STATUS = "0";
+
+    private static final int TYPE_FIELD = 0;
+    private static final int STATUS_FIELD = 1;
+    private static final int DESCRIPTION_FIELD = 2;
+    private static final int DEADLINE_DATE_FIELD = 3;
+    private static final int EVENT_START_FIELD = 3;
+    private static final int EVENT_END_FIELD = 4;
 
     private final Path filePath;
 
@@ -76,17 +89,17 @@ public class Storage {
      * @return Storage-file representation of the task.
      */
     private String formatTask(Task task) {
-        String status = task.isDone() ? "1" : "0";
+        String status = task.isDone() ? DONE_STATUS : UNDONE_STATUS;
         if (task instanceof Deadline deadline) {
-            return "D" + FIELD_SEPARATOR + status + FIELD_SEPARATOR
+            return DEADLINE_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR
                     + task.getDescription() + FIELD_SEPARATOR + deadline.getBy();
         }
         if (task instanceof Event event) {
-            return "E" + FIELD_SEPARATOR + status + FIELD_SEPARATOR
+            return EVENT_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR
                     + task.getDescription() + FIELD_SEPARATOR + event.getFrom()
                     + FIELD_SEPARATOR + event.getTo();
         }
-        return "T" + FIELD_SEPARATOR + status + FIELD_SEPARATOR + task.getDescription();
+        return TODO_TYPE + FIELD_SEPARATOR + status + FIELD_SEPARATOR + task.getDescription();
     }
 
     /**
@@ -96,15 +109,17 @@ public class Storage {
      * @return Task represented by the line.
      */
     private Task parseTask(String line) {
-        String[] fields = line.split(" \\| ", -1);
-        Task task = switch (fields[0]) {
-            case "T" -> new ToDo(fields[2]);
-            case "D" -> new Deadline(fields[2], LocalDate.parse(fields[3]));
-            case "E" -> new Event(fields[2], LocalDate.parse(fields[3]), LocalDate.parse(fields[4]));
-            default -> throw new IllegalArgumentException("Unknown task type: " + fields[0]);
+        // Retain trailing empty fields, including an empty todo description.
+        String[] fields = line.split(Pattern.quote(FIELD_SEPARATOR), -1);
+        Task task = switch (fields[TYPE_FIELD]) {
+            case TODO_TYPE -> new ToDo(fields[DESCRIPTION_FIELD]);
+            case DEADLINE_TYPE -> new Deadline(fields[DESCRIPTION_FIELD], LocalDate.parse(fields[DEADLINE_DATE_FIELD]));
+            case EVENT_TYPE -> new Event(fields[DESCRIPTION_FIELD],
+                    LocalDate.parse(fields[EVENT_START_FIELD]), LocalDate.parse(fields[EVENT_END_FIELD]));
+            default -> throw new IllegalArgumentException("Unknown task type: " + fields[TYPE_FIELD]);
         };
 
-        if (fields[1].equals("1")) {
+        if (fields[STATUS_FIELD].equals(DONE_STATUS)) {
             task.markAsDone();
         }
         return task;
