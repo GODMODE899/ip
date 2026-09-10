@@ -90,6 +90,35 @@ public class TaskListTest {
     }
 
     @Test
+    public void mark_taskIgnoresDoneUpdate_throwsAssertionError() {
+        Task task = new ToDo("broken completion update") {
+            @Override
+            public void markAsDone() {
+                // Simulate a subtype that violates Task's completion contract.
+            }
+        };
+        TaskList tasks = new TaskList(List.of(task));
+
+        assertEquals("Task completion status must match the requested state",
+                assertThrows(AssertionError.class, () -> tasks.mark(1, true)).getMessage());
+    }
+
+    @Test
+    public void mark_taskIgnoresUndoneUpdate_throwsAssertionError() {
+        Task task = new ToDo("broken incomplete update") {
+            @Override
+            public void markAsUndone() {
+                // Simulate a subtype that violates Task's completion contract.
+            }
+        };
+        task.markAsDone();
+        TaskList tasks = new TaskList(List.of(task));
+
+        assertEquals("Task completion status must match the requested state",
+                assertThrows(AssertionError.class, () -> tasks.mark(1, false)).getMessage());
+    }
+
+    @Test
     public void mark_invalidTaskNumber_throwsWithoutChangingTaskState() {
         Task task = new ToDo("book");
         TaskList tasks = new TaskList(List.of(task));

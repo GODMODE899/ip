@@ -65,6 +65,8 @@ public class TaskList {
         } else {
             task.markAsUndone();
         }
+        // Every task subtype must honor the status update before the caller reports success.
+        assert task.isDone() == isDone : "Task completion status must match the requested state";
         return task;
     }
 
@@ -145,7 +147,10 @@ public class TaskList {
         if (taskNumber < 1 || taskNumber > tasks.size()) {
             throw new AnacondaException("Task " + taskNumber + " does not exist.");
         }
-        return taskNumber - 1;
+        int index = taskNumber - 1;
+        // Once user input is validated, conversion must produce a safe zero-based index.
+        assert index >= 0 && index < tasks.size() : "Validated task number must map to an existing index";
+        return index;
     }
 
 }

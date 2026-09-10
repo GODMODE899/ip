@@ -84,6 +84,8 @@ public class Storage {
                     + task.getDescription() + FIELD_SEPARATOR + event.getFrom()
                     + FIELD_SEPARATOR + event.getTo();
         }
+        // Parser and loader create only these three task types; a new type needs its own storage format.
+        assert task instanceof ToDo : "Only ToDo tasks may use the T storage format";
         return "T" + FIELD_SEPARATOR + status + FIELD_SEPARATOR + task.getDescription();
     }
 
