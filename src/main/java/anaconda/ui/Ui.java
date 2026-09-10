@@ -71,9 +71,7 @@ public class Ui implements AutoCloseable {
      */
     public void showTasks(List<Task> tasks, boolean isFiltered) {
         showToUser(isFiltered ? "Matching tasks:" : "Your list:");
-        for (int i = 0; i < tasks.size(); i++) {
-            showToUser((i + 1) + "." + tasks.get(i));
-        }
+        showNumberedTasks(tasks);
     }
 
     /**
@@ -83,6 +81,13 @@ public class Ui implements AutoCloseable {
      */
     public void showFindResults(List<Task> tasks) {
         showToUser("Here are the matching tasks in your list:");
+        showNumberedTasks(tasks);
+    }
+
+    /**
+     * Displays task rows with consecutive one-based numbers for every list view.
+     */
+    private void showNumberedTasks(List<Task> tasks) {
         for (int i = 0; i < tasks.size(); i++) {
             showToUser((i + 1) + "." + tasks.get(i));
         }

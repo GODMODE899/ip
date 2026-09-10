@@ -49,5 +49,8 @@ Storage/application tests use JUnit `@TempDir`, never the project's `data/anacon
 Console tests restore `System.in`/`System.out` in try-with-resources and share a resource lock;
 locale tests restore the original formatting locale in `finally`.
 
+List-rendering tests also verify that full lists, date-filter results, and description-search subsets
+restart numbering at one and preserve the order of the displayed tasks.
+
 The separate console regression plan in `test/ui-test-plan.md` remains useful alongside these JUnit tests.
 Its session transcript presents each input immediately followed by its output.

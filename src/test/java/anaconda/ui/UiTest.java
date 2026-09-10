@@ -106,6 +106,22 @@ public class UiTest {
     }
 
     @Test
+    public void showFindResults_subsetOfTasks_numbersOnlyDisplayedTasks() {
+        Task first = new ToDo("first");
+        Task middle = new ToDo("middle");
+        Task last = new ToDo("last");
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            ui.showTasks(List.of(first, middle, last), false);
+            ui.showTasks(List.of(last), true);
+            ui.showFindResults(List.of(first, last));
+            assertEquals("Your list:\n1.[T][ ] first\n2.[T][ ] middle\n3.[T][ ] last\n"
+                    + "Matching tasks:\n1.[T][ ] last\n"
+                    + "Here are the matching tasks in your list:\n1.[T][ ] first\n2.[T][ ] last\n",
+                    session.output());
+        }
+    }
+
+    @Test
     public void showTaskAdded_taskAndSuppliedCount_printsThreeLines() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             Task task = new ToDo("book");
