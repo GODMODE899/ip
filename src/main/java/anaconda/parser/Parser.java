@@ -150,9 +150,14 @@ public class Parser {
      * @param command BY or FROM, used to explain the required syntax.
      * @return Parsed filter values.
      * @throws AnacondaException If the filter syntax or date is invalid.
+     * @throws IllegalArgumentException If the command is not BY or FROM.
      */
     public DateFilter parseDateFilter(String arguments, Command command) throws AnacondaException {
-        String commandWord = command == Command.BY ? "/by" : "/from";
+        String commandWord = switch (command) {
+            case BY -> "/by";
+            case FROM -> "/from";
+            case null, default -> throw new IllegalArgumentException("Command does not filter by date: " + command);
+        };
         String[] filterParts = arguments.split("\\s+");
         boolean hasValidPartCount = !arguments.isEmpty() && filterParts.length <= 2;
         boolean isSharp = filterParts.length == 2 && filterParts[1].equalsIgnoreCase("sharp");

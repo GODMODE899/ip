@@ -234,6 +234,19 @@ public class ParserTest {
     }
 
     @Test
+    public void parseDateFilter_nonFilterCommand_throwsIllegalArgumentException() {
+        for (Command command : Command.values()) {
+            if (command == Command.BY || command == Command.FROM) {
+                continue;
+            }
+            assertEquals("Command does not filter by date: " + command,
+                    assertThrows(IllegalArgumentException.class, () ->
+                            parser.parseDateFilter("2026-08-19", command)).getMessage());
+        }
+        assertThrows(IllegalArgumentException.class, () -> parser.parseDateFilter("2026-08-19", null));
+    }
+
+    @Test
     public void parseDateFilter_missingDateOrExtraWords_throwsSyntaxException() {
         for (Command command : new Command[] {Command.BY, Command.FROM}) {
             String word = command == Command.BY ? "/by" : "/from";

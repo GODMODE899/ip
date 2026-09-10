@@ -2,6 +2,7 @@ package anaconda;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -70,9 +71,9 @@ public class Anaconda {
             try {
                 if (isAwaitingClearConfirmation) {
                     isAwaitingClearConfirmation = false;
-                    clearTasksIfConfirmed(input);
+                    clearTasksIfConfirmed(input, ui);
                 } else {
-                    isAwaitingClearConfirmation = handleCommand(input);
+                    isAwaitingClearConfirmation = handleCommand(input, ui);
                 }
             } catch (AnacondaException exception) {
                 ui.showError(exception.getMessage());
@@ -86,6 +87,7 @@ public class Anaconda {
 
     /**
      * Processes one GUI command and returns the same response text used by the console interface.
+     * Captures only this response without changing JVM-wide streams.
      *
      * @param input Complete user input.
      * @return Response to display in the GUI.
@@ -96,12 +98,9 @@ public class Anaconda {
         }
 
         ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
-        PrintStream originalOutput = System.out;
-        try (PrintStream responseOutput = new PrintStream(responseBuffer, true, StandardCharsets.UTF_8)) {
-            System.setOut(responseOutput);
-            processGuiInput(input);
-        } finally {
-            System.setOut(originalOutput);
+        try (PrintStream responseOutput = new PrintStream(responseBuffer, true, StandardCharsets.UTF_8);
+                Ui responseUi = new Ui(InputStream.nullInputStream(), responseOutput)) {
+            processGuiInput(input, responseUi);
         }
         return responseBuffer.toString(StandardCharsets.UTF_8).stripTrailing();
     }
@@ -109,16 +108,16 @@ public class Anaconda {
     /**
      * Processes a GUI command or a pending clear confirmation using the existing command handlers.
      */
-    private void processGuiInput(String input) {
+    private void processGuiInput(String input, Ui responseUi) {
         try {
             if (isAwaitingGuiClearConfirmation) {
                 isAwaitingGuiClearConfirmation = false;
-                clearTasksIfConfirmed(input);
+                clearTasksIfConfirmed(input, responseUi);
             } else {
-                isAwaitingGuiClearConfirmation = handleCommand(input);
+                isAwaitingGuiClearConfirmation = handleCommand(input, responseUi);
             }
         } catch (AnacondaException exception) {
-            ui.showError(exception.getMessage());
+            responseUi.showError(exception.getMessage());
         }
     }
 
@@ -126,70 +125,89 @@ public class Anaconda {
      * Dispatches a parsed command to the task list, storage, and user interface.
      *
      * @param input Complete user input.
+     * @param responseUi Destination for this command's messages.
      * @return Whether the next input must confirm a clear operation.
      * @throws AnacondaException If the command is invalid or saving fails.
      */
-    private boolean handleCommand(String input) throws AnacondaException {
+    private boolean handleCommand(String input, Ui responseUi) throws AnacondaException {
         Parser.ParsedCommand parsedCommand = parser.parse(input);
         Command command = parsedCommand.command();
         String arguments = parsedCommand.arguments();
 
         switch (command) {
-            case LIST:
-                ui.showTasks(tasks.asList(), false);
-                break;
-            case MARK:
-                Task markedTask = tasks.mark(parser.parseTaskNumber(arguments), true);
-                saveTasks();
-                ui.showMarked(markedTask, true);
-                break;
-            case UNMARK:
-                Task unmarkedTask = tasks.mark(parser.parseTaskNumber(arguments), false);
-                saveTasks();
-                ui.showMarked(unmarkedTask, false);
-                break;
-            case DELETE:
-                Task removedTask = tasks.delete(parser.parseTaskNumber(arguments));
-                saveTasks();
-                ui.showTaskRemoved(removedTask, tasks.size());
-                break;
-            case CLEAR:
-                ui.showClearQuestion();
+            case LIST -> responseUi.showTasks(tasks.asList(), false);
+            case MARK, UNMARK -> changeTaskStatus(arguments, command == Command.MARK, responseUi);
+            case DELETE -> deleteTask(arguments, responseUi);
+            case CLEAR -> {
+                responseUi.showClearQuestion();
                 return true;
-            case FIND:
-                String keyword = parser.parseKeyword(arguments);
-                ui.showFindResults(tasks.find(keyword));
-                break;
-            case TODO, DEADLINE, EVENT:
-                Task task = parser.parseTask(command, arguments);
-                tasks.add(task);
-                saveTasks();
-                ui.showTaskAdded(task, tasks.size());
-                break;
-            case BY, FROM:
-                Parser.DateFilter filter = parser.parseDateFilter(arguments, command);
-                ui.showTasks(tasks.filterByDate(filter.date(), command, filter.isSharp()), true);
-                break;
-            case BYE:
-                // Standalone bye commands are handled by the run loop.
-                break;
-            default:
-                throw new IllegalStateException("Unsupported command: " + command);
+            }
+            case FIND -> findTasks(arguments, responseUi);
+            case TODO, DEADLINE, EVENT -> addTask(command, arguments, responseUi);
+            case BY, FROM -> filterTasksByDate(command, arguments, responseUi);
+            case BYE -> {
+                // Console and GUI entry points handle standalone bye commands before dispatch.
+            }
+            default -> throw new IllegalStateException("Unsupported command: " + command);
         }
         return false;
     }
 
     /**
+     * Updates a task's completion state and reports success only after saving.
+     */
+    private void changeTaskStatus(String arguments, boolean isDone, Ui responseUi) throws AnacondaException {
+        Task task = tasks.mark(parser.parseTaskNumber(arguments), isDone);
+        saveTasks();
+        responseUi.showMarked(task, isDone);
+    }
+
+    /**
+     * Removes the selected task and reports success only after saving.
+     */
+    private void deleteTask(String arguments, Ui responseUi) throws AnacondaException {
+        Task removedTask = tasks.delete(parser.parseTaskNumber(arguments));
+        saveTasks();
+        responseUi.showTaskRemoved(removedTask, tasks.size());
+    }
+
+    /**
+     * Creates a task and reports success only after saving.
+     */
+    private void addTask(Command command, String arguments, Ui responseUi) throws AnacondaException {
+        Task task = parser.parseTask(command, arguments);
+        tasks.add(task);
+        saveTasks();
+        responseUi.showTaskAdded(task, tasks.size());
+    }
+
+    /**
+     * Displays tasks matching a validated description keyword.
+     */
+    private void findTasks(String arguments, Ui responseUi) throws AnacondaException {
+        String keyword = parser.parseKeyword(arguments);
+        responseUi.showFindResults(tasks.find(keyword));
+    }
+
+    /**
+     * Displays tasks matching a validated date filter.
+     */
+    private void filterTasksByDate(Command command, String arguments, Ui responseUi) throws AnacondaException {
+        Parser.DateFilter filter = parser.parseDateFilter(arguments, command);
+        responseUi.showTasks(tasks.filterByDate(filter.date(), command, filter.isSharp()), true);
+    }
+
+    /**
      * Clears and saves tasks only after explicit approval.
      */
-    private void clearTasksIfConfirmed(String confirmation) throws AnacondaException {
+    private void clearTasksIfConfirmed(String confirmation, Ui responseUi) throws AnacondaException {
         if (!parser.isClearConfirmed(confirmation)) {
-            ui.showClearCancelled();
+            responseUi.showClearCancelled();
             return;
         }
         tasks.clear();
         saveTasks();
-        ui.showCleared();
+        responseUi.showCleared();
     }
 
     /**

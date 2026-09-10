@@ -120,8 +120,13 @@ public class TaskList {
      * @param direction BY for on-or-before, or FROM for on-or-after.
      * @param isSharp Whether only exact date matches should be returned.
      * @return Matching tasks in their original order.
+     * @throws IllegalArgumentException If the direction is not BY or FROM.
      */
     public List<Task> filterByDate(LocalDate filterDate, Command direction, boolean isSharp) {
+        if (direction != Command.BY && direction != Command.FROM) {
+            throw new IllegalArgumentException("Command does not filter by date: " + direction);
+        }
+
         ArrayList<Task> matchingTasks = new ArrayList<>();
         for (Task task : tasks) {
             LocalDate endDate = task.getEndDate();

@@ -229,6 +229,35 @@ public class TaskListTest {
     }
 
     @Test
+    public void filterByDate_nonFilterCommand_throwsWithoutChangingTasks() {
+        LocalDate date = LocalDate.of(2026, 8, 19);
+        Task task = new Deadline("book", date);
+        TaskList tasks = new TaskList(List.of(task));
+        for (Command command : Command.values()) {
+            if (command == Command.BY || command == Command.FROM) {
+                continue;
+            }
+            for (boolean isSharp : new boolean[] {false, true}) {
+                assertEquals("Command does not filter by date: " + command,
+                        assertThrows(IllegalArgumentException.class, () ->
+                                tasks.filterByDate(date, command, isSharp)).getMessage());
+            }
+        }
+        assertEquals(List.of(task), tasks.asList());
+        assertFalse(task.isDone());
+    }
+
+    @Test
+    public void filterByDate_emptyListWithInvalidDirection_stillRejectsDirection() {
+        TaskList tasks = new TaskList();
+        LocalDate date = LocalDate.of(2026, 8, 19);
+        for (boolean isSharp : new boolean[] {false, true}) {
+            assertThrows(IllegalArgumentException.class, () -> tasks.filterByDate(date, Command.LIST, isSharp));
+            assertThrows(IllegalArgumentException.class, () -> tasks.filterByDate(date, null, isSharp));
+        }
+    }
+
+    @Test
     public void filterByDate_result_isAnUnmodifiableSnapshot() {
         LocalDate date = LocalDate.of(2026, 8, 19);
         Task task = new Deadline("book", date);
