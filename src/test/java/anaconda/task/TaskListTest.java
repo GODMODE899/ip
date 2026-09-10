@@ -161,6 +161,52 @@ public class TaskListTest {
     }
 
     @Test
+    public void snapshot_laterMutations_restoresOriginalOrderTypesAndStatuses() throws AnacondaException {
+        LocalDate date = LocalDate.of(2026, 9, 10);
+        Task todo = new ToDo("book");
+        Task deadline = new Deadline("report", date);
+        Task event = new Event("meeting", date.minusDays(1), date);
+        deadline.markAsDone();
+        TaskList tasks = new TaskList(List.of(todo, deadline, event));
+        TaskList.Snapshot snapshot = tasks.snapshot();
+
+        tasks.mark(1, true);
+        tasks.mark(2, false);
+        tasks.delete(2);
+        tasks.clear();
+        tasks.add(new ToDo("replacement"));
+        tasks.restore(snapshot);
+
+        assertEquals(List.of(todo, deadline, event), tasks.asList());
+        assertFalse(todo.isDone());
+        assertTrue(deadline.isDone());
+        assertSame(event, tasks.asList().getLast());
+        assertEquals(date, deadline.getEndDate());
+        assertEquals(date, event.getEndDate());
+    }
+
+    @Test
+    public void restore_multipleSnapshots_canReuseEachCapturedState() throws AnacondaException {
+        TaskList tasks = new TaskList();
+        TaskList.Snapshot empty = tasks.snapshot();
+        Task task = new ToDo("book");
+        tasks.add(task);
+        TaskList.Snapshot incomplete = tasks.snapshot();
+        tasks.mark(1, true);
+        TaskList.Snapshot completed = tasks.snapshot();
+
+        tasks.restore(incomplete);
+        assertFalse(task.isDone());
+        tasks.restore(completed);
+        assertTrue(task.isDone());
+        tasks.restore(empty);
+        assertTrue(tasks.asList().isEmpty());
+        tasks.restore(incomplete);
+        assertEquals(List.of(task), tasks.asList());
+        assertFalse(task.isDone());
+    }
+
+    @Test
     public void find_keywordMatchesDescriptions_ignoresCaseAndPreservesOrderAndState() {
         Task first = new ToDo("Read Book");
         Task second = new Deadline("return book", LocalDate.of(2026, 8, 19));

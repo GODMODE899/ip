@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import anaconda.exception.AnacondaException;
 import anaconda.parser.Command;
@@ -25,6 +27,14 @@ public class Anaconda {
     private final TaskList tasks;
     private final Ui ui;
     private final Parser parser;
+    /**
+     * States before successfully saved mutations, most recent first; history lasts for this session.
+     */
+    private final Deque<TaskList.Snapshot> undoHistory = new ArrayDeque<>();
+    /**
+     * States reversed by undo, most recent first; another command ends the current undo chain.
+     */
+    private final Deque<TaskList.Snapshot> redoHistory = new ArrayDeque<>();
     private boolean isAwaitingGuiClearConfirmation;
 
     /**
@@ -64,6 +74,7 @@ public class Anaconda {
         while (true) {
             String input = ui.readCommand();
             if (!isAwaitingClearConfirmation && parser.isExitCommand(input)) {
+                redoHistory.clear();
                 break;
             }
 
@@ -94,6 +105,7 @@ public class Anaconda {
      */
     public String getResponse(String input) {
         if (!isAwaitingGuiClearConfirmation && parser.isExitCommand(input)) {
+            redoHistory.clear();
             return "Alright, until next time.";
         }
 
@@ -130,7 +142,7 @@ public class Anaconda {
      * @throws AnacondaException If the command is invalid or saving fails.
      */
     private boolean handleCommand(String input, Ui responseUi) throws AnacondaException {
-        Parser.ParsedCommand parsedCommand = parser.parse(input);
+        Parser.ParsedCommand parsedCommand = parseAndUpdateUndoChain(input);
         Command command = parsedCommand.command();
         String arguments = parsedCommand.arguments();
 
@@ -138,6 +150,13 @@ public class Anaconda {
             case LIST -> responseUi.showTasks(tasks.asList(), false);
             case MARK, UNMARK -> changeTaskStatus(arguments, command == Command.MARK, responseUi);
             case DELETE -> deleteTask(arguments, responseUi);
+            case UNDO -> {
+                if (arguments.isEmpty()) {
+                    undoTaskChange(responseUi);
+                } else {
+                    redoTaskChange(responseUi);
+                }
+            }
             case CLEAR -> {
                 responseUi.showClearQuestion();
                 return true;
@@ -154,11 +173,29 @@ public class Anaconda {
     }
 
     /**
+     * Ends the undo chain on any input other than a valid undo or undo undo command.
+     * Ordinary undo history remains available after the chain ends.
+     */
+    private Parser.ParsedCommand parseAndUpdateUndoChain(String input) throws AnacondaException {
+        try {
+            Parser.ParsedCommand parsedCommand = parser.parse(input);
+            if (parsedCommand.command() != Command.UNDO) {
+                redoHistory.clear();
+            }
+            return parsedCommand;
+        } catch (AnacondaException exception) {
+            redoHistory.clear();
+            throw exception;
+        }
+    }
+
+    /**
      * Updates a task's completion state and reports success only after saving.
      */
     private void changeTaskStatus(String arguments, boolean isDone, Ui responseUi) throws AnacondaException {
+        TaskList.Snapshot previousState = tasks.snapshot();
         Task task = tasks.mark(parser.parseTaskNumber(arguments), isDone);
-        saveTasks();
+        saveChange(previousState);
         responseUi.showMarked(task, isDone);
     }
 
@@ -166,8 +203,9 @@ public class Anaconda {
      * Removes the selected task and reports success only after saving.
      */
     private void deleteTask(String arguments, Ui responseUi) throws AnacondaException {
+        TaskList.Snapshot previousState = tasks.snapshot();
         Task removedTask = tasks.delete(parser.parseTaskNumber(arguments));
-        saveTasks();
+        saveChange(previousState);
         responseUi.showTaskRemoved(removedTask, tasks.size());
     }
 
@@ -176,8 +214,9 @@ public class Anaconda {
      */
     private void addTask(Command command, String arguments, Ui responseUi) throws AnacondaException {
         Task task = parser.parseTask(command, arguments);
+        TaskList.Snapshot previousState = tasks.snapshot();
         tasks.add(task);
-        saveTasks();
+        saveChange(previousState);
         responseUi.showTaskAdded(task, tasks.size());
     }
 
@@ -205,9 +244,50 @@ public class Anaconda {
             responseUi.showClearCancelled();
             return;
         }
+        TaskList.Snapshot previousState = tasks.snapshot();
         tasks.clear();
-        saveTasks();
+        saveChange(previousState);
         responseUi.showCleared();
+    }
+
+    /**
+     * Restores the most recent saved mutation, retaining history if the restored state cannot be saved.
+     */
+    private void undoTaskChange(Ui responseUi) throws AnacondaException {
+        if (undoHistory.isEmpty()) {
+            throw new AnacondaException("There is nothing to undo.");
+        }
+        TaskList.Snapshot currentState = tasks.snapshot();
+        tasks.restore(undoHistory.peek());
+        saveOrRestore(currentState);
+        undoHistory.pop();
+        redoHistory.push(currentState);
+        responseUi.showUndo();
+        responseUi.showTasks(tasks.asList(), false);
+    }
+
+    /**
+     * Reverses the most recent undo in this chain, moving history only after saving succeeds.
+     */
+    private void redoTaskChange(Ui responseUi) throws AnacondaException {
+        if (redoHistory.isEmpty()) {
+            throw new AnacondaException("There is no undo to reverse.");
+        }
+        TaskList.Snapshot currentState = tasks.snapshot();
+        tasks.restore(redoHistory.peek());
+        saveOrRestore(currentState);
+        redoHistory.pop();
+        undoHistory.push(currentState);
+        responseUi.showRedo();
+        responseUi.showTasks(tasks.asList(), false);
+    }
+
+    /**
+     * Saves a mutation before making its previous state available for undo.
+     */
+    private void saveChange(TaskList.Snapshot previousState) throws AnacondaException {
+        saveOrRestore(previousState);
+        undoHistory.push(previousState);
     }
 
     /**
@@ -223,12 +303,13 @@ public class Anaconda {
     }
 
     /**
-     * Saves the current list and translates file errors into user-facing exceptions.
+     * Saves the current list, restoring its previous in-memory state if writing fails.
      */
-    private void saveTasks() throws AnacondaException {
+    private void saveOrRestore(TaskList.Snapshot previousState) throws AnacondaException {
         try {
             storage.saveTasks(tasks.asList());
         } catch (IOException exception) {
+            tasks.restore(previousState);
             throw new AnacondaException("I couldn't save your task list.");
         }
     }

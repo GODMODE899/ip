@@ -175,6 +175,20 @@ public class Ui implements AutoCloseable {
     }
 
     /**
+     * Reports that the previous task-changing command was undone and saved.
+     */
+    public void showUndo() {
+        showToUser("Undid the previous command.");
+    }
+
+    /**
+     * Reports that the previous undo was reversed and saved.
+     */
+    public void showRedo() {
+        showToUser("Undid the previous undo.");
+    }
+
+    /**
      * Displays the farewell message.
      */
     public void showGoodbye() {

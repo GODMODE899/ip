@@ -38,7 +38,7 @@ public class Parser {
     }
 
     /**
-     * Splits a command and validates commands that do not accept arguments.
+     * Splits a command and validates argument restrictions for list, clear, undo, and bye.
      *
      * @param input Complete user input.
      * @return Recognized command and its argument text.
@@ -59,6 +59,11 @@ public class Parser {
                 break;
             case CLEAR:
                 requireNoArguments(arguments, "clear");
+                break;
+            case UNDO:
+                if (!arguments.isEmpty() && !arguments.equalsIgnoreCase("undo")) {
+                    throw new AnacondaException("Use 'undo' or 'undo undo'.");
+                }
                 break;
             case BYE:
                 if (!arguments.isEmpty()) {
