@@ -64,6 +64,10 @@ fields, invalid dates and event order, invalid/overflowing/nonexistent task numb
 filter arguments. Failures preserve storage and undo history. Simple commands, successful additions,
 duplicates, unknown commands, and storage errors do not receive these argument hints.
 
+Unknown or blank input includes a compact list of all commands in the red response, grouped by purpose,
+including `undo undo` for redo. GUI, console, and exact UI-output tests cover this command list.
+Storage errors retain their focused error message without unrelated command suggestions.
+
 ## Running the tests
 
 Undo coverage includes parser syntax, the UI success message, reusable task snapshots, all seven mutation

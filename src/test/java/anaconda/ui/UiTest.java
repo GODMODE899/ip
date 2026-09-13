@@ -82,6 +82,16 @@ public class UiTest {
     }
 
     @Test
+    public void showCommandList_availableCommands_printsCompactGroups() {
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            ui.showCommandList();
+            assertEquals("Available commands:\nAdd: todo, deadline, event\n"
+                    + "View/search: list, find, /by, /from\nUpdate: mark, unmark, delete, clear\n"
+                    + "History: undo, undo undo (redo)\nExit: bye\n", session.output());
+        }
+    }
+
+    @Test
     public void showErrorAndLoadingError_printsHelpfulMessages() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showError("Bad command.");

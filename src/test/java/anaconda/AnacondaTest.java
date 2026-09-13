@@ -245,7 +245,21 @@ public class AnacondaTest {
             Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
             assertEquals(Anaconda.ResponseStatus.ERROR, response.status(), input);
             assertTrue(response.text().startsWith("Oops!"), input);
+            assertTrue(response.text().contains("Available commands:"), input);
+            for (String group : List.of("Add: todo, deadline, event", "View/search: list, find, /by, /from",
+                    "Update: mark, unmark, delete, clear", "History: undo, undo undo (redo)", "Exit: bye")) {
+                assertTrue(response.text().contains(group), input);
+            }
         }
+    }
+
+    @Test
+    public void run_unknownInput_listsCommandsAndContinuesWithoutChangingTasks() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file, "nonsense\ntodo book\nbye\n");
+        assertTrue(output.contains("Oops! I don't recognize that command.\nAvailable commands:\n"));
+        assertTrue(output.contains("History: undo, undo undo (redo)\nExit: bye\n"));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
     @Test
@@ -390,7 +404,7 @@ public class AnacondaTest {
         assertEquals(String.join(lineSeparator,
                 "Your list:",
                 "1.[T][ ] book"), anaconda.getResponse("list"));
-        assertEquals("Oops! I don't recognize that command.", anaconda.getResponse("unknown"));
+        assertTrue(anaconda.getResponse("unknown").contains("Available commands:"));
         assertEquals("Fine. Everything's gone.", anaconda.getResponse("clear"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Your list:", anaconda.getResponse("list"));
@@ -407,7 +421,7 @@ public class AnacondaTest {
             Anaconda anaconda = new Anaconda(file);
 
             assertTrue(anaconda.getResponse("todo café 读书").contains("[T][ ] café 读书"));
-            assertEquals("Oops! I don't recognize that command.", anaconda.getResponse("unknown"));
+            assertTrue(anaconda.getResponse("unknown").contains("Available commands:"));
             assertSame(consoleInput, System.in);
             assertSame(consoleOutput, System.out);
             assertEquals("", session.output());

@@ -79,6 +79,18 @@ public class Ui implements AutoCloseable {
     }
 
     /**
+     * Lists available commands in compact groups for users whose input was not recognized.
+     */
+    public void showCommandList() {
+        showToUser("Available commands:",
+                "Add: todo, deadline, event",
+                "View/search: list, find, /by, /from",
+                "Update: mark, unmark, delete, clear",
+                "History: undo, undo undo (redo)",
+                "Exit: bye");
+    }
+
+    /**
      * Reports that previously saved tasks could not be loaded.
      */
     public void showLoadingError() {

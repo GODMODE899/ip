@@ -96,7 +96,7 @@ public class Anaconda {
             try {
                 handleCommand(input, ui);
             } catch (AnacondaException exception) {
-                ui.showError(exception.getMessage());
+                showCommandError(exception, ui);
             }
             ui.showLine();
         }
@@ -144,11 +144,21 @@ public class Anaconda {
         try {
             return handleCommand(input, responseUi);
         } catch (AnacondaException exception) {
-            responseUi.showError(exception.getMessage());
+            showCommandError(exception, responseUi);
             return switch (exception.getReason()) {
                 case INVALID_INPUT -> ResponseStatus.WARNING;
                 case UNKNOWN_COMMAND, STORAGE_ERROR -> ResponseStatus.ERROR;
             };
+        }
+    }
+
+    /**
+     * Displays an error and helps users discover commands when their input is unrecognized.
+     */
+    private void showCommandError(AnacondaException exception, Ui responseUi) {
+        responseUi.showError(exception.getMessage());
+        if (exception.getReason() == AnacondaException.Reason.UNKNOWN_COMMAND) {
+            responseUi.showCommandList();
         }
     }
 
