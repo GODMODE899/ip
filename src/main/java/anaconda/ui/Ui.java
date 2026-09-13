@@ -11,6 +11,8 @@ import anaconda.task.Task;
  * Handles console input and all messages displayed by the chatbot.
  */
 public class Ui implements AutoCloseable {
+    public static final String LOADING_ERROR_MESSAGE =
+            "Your saved list was compromised or could not be read. Starting with a new empty list.";
     private static final String LINE = "____________________________________________________________";
 
     private final Scanner scanner;
@@ -95,7 +97,7 @@ public class Ui implements AutoCloseable {
      * Reports that previously saved tasks could not be loaded.
      */
     public void showLoadingError() {
-        showError("I couldn't load your saved tasks.");
+        showError(LOADING_ERROR_MESSAGE);
     }
 
     /**

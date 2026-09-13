@@ -43,6 +43,7 @@ public class Anaconda {
     private final TaskList tasks;
     private final Ui ui;
     private final Parser parser;
+    private boolean hasLoadingError;
     /**
      * States before successfully saved mutations, most recent first; history lasts for this session.
      */
@@ -69,6 +70,10 @@ public class Anaconda {
         parser = new Parser();
         storage = new Storage(filePath);
         tasks = loadTasks();
+    }
+
+    public boolean hasLoadingError() {
+        return hasLoadingError;
     }
 
     /**
@@ -371,6 +376,7 @@ public class Anaconda {
         try {
             return new TaskList(storage.loadTasks());
         } catch (IOException exception) {
+            hasLoadingError = true;
             ui.showLoadingError();
             return new TaskList();
         }

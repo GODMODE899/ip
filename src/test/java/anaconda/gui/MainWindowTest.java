@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -131,6 +132,23 @@ public class MainWindowTest {
             Label undoText = (Label) ((DialogBox) dialogs.getChildren().get(5)).getChildren().get(1);
             assertTrue(undoText.getText().contains("1.[T][ ] book"));
             assertFalse(undoText.getText().contains("2.[T]"));
+            return null;
+        });
+    }
+
+    @Test
+    public void setAnaconda_corruptedFile_showsRedStartupWarning() throws Exception {
+        Path file = temporaryDirectory.resolve("corrupt.txt");
+        Files.writeString(file, "corrupted data");
+        JavaFxTestSupport.runOnFxThread(() -> {
+            FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("/View/MainWindow.fxml"));
+            AnchorPane root = loader.load();
+            loader.<MainWindow>getController().setAnaconda(new Anaconda(file));
+            VBox dialogs = (VBox) ((ScrollPane) root.lookup("#scrollPane")).getContent();
+            assertEquals(1, dialogs.getChildren().size());
+            DialogBox warning = (DialogBox) dialogs.getChildren().getFirst();
+            assertTrue(warning.getStyleClass().contains("error"));
+            assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Starting with a new empty list."));
             return null;
         });
     }

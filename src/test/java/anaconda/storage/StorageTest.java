@@ -173,6 +173,15 @@ public class StorageTest {
     }
 
     @Test
+    public void loadTasks_malformedData_throwsIoExceptionWithoutChangingFile() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String saved = "T | 0 | valid\nD | 0 | report | 2026-02-30\n";
+        Files.writeString(file, saved);
+        assertThrows(IOException.class, () -> new Storage(file).loadTasks());
+        assertEquals(saved, Files.readString(file));
+    }
+
+    @Test
     public void loadTasks_directoryInsteadOfFile_throwsIoException() {
         assertThrows(IOException.class, () -> new Storage(temporaryDirectory).loadTasks());
     }

@@ -44,8 +44,7 @@ and separation from the conversation when the window is resized, including a sho
 Event commands reject start dates later than end dates before changing tasks or storage. Tests cover both
 date formats, equal dates, leap-day and year boundaries, yellow GUI warning status, console recovery,
 and preservation of saved tasks and undo history after invalid input. Validation applies to new commands;
-loading existing saved events is unchanged. Storage escaping and corrupted-file recovery remain outside
-the implemented feature set.
+loading existing saved events is unchanged. Storage escaping remains outside the implemented feature set.
 Impossible calendar dates are rejected for deadlines, both event endpoints, and both date filters.
 Regression cases include February 30 in leap and non-leap years, February 29 in non-leap years (including
 2100), and valid leap days in 2000 and 2024, in both accepted formats. Invalid inputs produce a yellow
@@ -71,6 +70,10 @@ Storage errors retain their focused error message without unrelated command sugg
 The `help` command displays the same command list with success status, including itself. Tests cover
 case and surrounding whitespace, rejection of extra arguments, console output, unchanged storage,
 and preservation of undo history.
+
+Load failures, including malformed task types, field counts, completion flags, and dates, discard the
+entire loaded list and report an empty-list restart in the console and GUI. Tests verify the red startup
+notice, no partial loading, unchanged files at startup, and successful saving/reloading of new tasks.
 
 ## Running the tests
 

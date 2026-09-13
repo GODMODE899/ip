@@ -96,7 +96,8 @@ public class UiTest {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showError("Bad command.");
             ui.showLoadingError();
-            assertEquals("Oops! Bad command.\nOops! I couldn't load your saved tasks.\n", session.output());
+            assertEquals("Oops! Bad command.\nOops! Your saved list was compromised or could not be read. "
+                    + "Starting with a new empty list.\n", session.output());
         }
     }
 

@@ -828,9 +828,30 @@ public class AnacondaTest {
     }
 
     @Test
+    public void constructor_corruptedFile_discardsWholeListAndAllowsSavingNewTasks() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        for (String malformed : List.of("garbage", "T | 0", "T | maybe | book", "T | 0 | book | extra",
+                "D | 0 | report | 2026-02-30", "E | 0 | meeting | tomorrow | 2026-09-20", "")) {
+            String saved = "T | 0 | valid task\n" + malformed + "\n";
+            Files.writeString(file, saved);
+            try (ConsoleSession session = new ConsoleSession("")) {
+                Anaconda anaconda = new Anaconda(file);
+                assertTrue(anaconda.hasLoadingError());
+                assertTrue(session.output().contains("Starting with a new empty list."));
+                assertEquals("Your list:", anaconda.getResponse("list"));
+                assertEquals(saved, Files.readString(file));
+                assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("todo new task").status());
+                assertEquals(List.of("T | 0 | new task"), Files.readAllLines(file));
+                assertFalse(new Anaconda(file).hasLoadingError());
+            }
+        }
+    }
+
+    @Test
     public void constructor_unreadableDataFile_reportsErrorAndStartsEmpty() {
         String output = runSession(temporaryDirectory, "list\nbye\n");
-        assertTrue(output.startsWith("Oops! I couldn't load your saved tasks.\n"));
+        assertTrue(output.startsWith("Oops! Your saved list was compromised or could not be read. "
+                + "Starting with a new empty list.\n"));
         assertTrue(output.contains("Your list:\n"
                 + "____________________________________________________________"));
         assertTrue(output.contains("Alright, until next time."));
