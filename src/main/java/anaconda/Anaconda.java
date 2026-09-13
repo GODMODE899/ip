@@ -162,6 +162,49 @@ public class Anaconda {
      */
     private ResponseStatus handleCommand(String input, Ui responseUi) throws AnacondaException {
         Parser.ParsedCommand parsedCommand = parseAndUpdateUndoChain(input);
+        try {
+            return executeCommand(parsedCommand, responseUi);
+        } catch (AnacondaException exception) {
+            String guidance = getInputGuidance(parsedCommand.command());
+            if (exception.getReason() != AnacondaException.Reason.INVALID_INPUT || guidance.isEmpty()) {
+                throw exception;
+            }
+            throw new AnacondaException(exception.getMessage() + System.lineSeparator() + guidance,
+                    exception.getReason());
+        }
+    }
+
+    /**
+     * Returns syntax and an example for commands that accept user-specified details.
+     */
+    private String getInputGuidance(Command command) {
+        String line = System.lineSeparator();
+        String dateGuidance = line + "Dates: yyyy-MM-dd or dd-MM-yyyy.";
+        return switch (command) {
+            case TODO -> "Format: todo DESCRIPTION" + line + "Example: todo read book";
+            case DEADLINE -> "Format: deadline DESCRIPTION /by DATE" + line
+                    + "Example: deadline report /by 2026-09-20" + dateGuidance;
+            case EVENT -> "Format: event DESCRIPTION /from START_DATE /to END_DATE" + line
+                    + "Example: event meeting /from 2026-09-20 /to 2026-09-21" + dateGuidance;
+            case MARK -> "Format: mark TASK_NUMBER" + line + "Example: mark 1" + line
+                    + "Use a task number from list.";
+            case UNMARK -> "Format: unmark TASK_NUMBER" + line + "Example: unmark 1" + line
+                    + "Use a task number from list.";
+            case DELETE -> "Format: delete TASK_NUMBER" + line + "Example: delete 1" + line
+                    + "Use a task number from list.";
+            case FIND -> "Format: find KEYWORD" + line + "Example: find book";
+            case BY -> "Format: /by DATE [sharp]" + line + "Example: /by 2026-09-20" + dateGuidance
+                    + line + "Add sharp to match only that exact date.";
+            case FROM -> "Format: /from DATE [sharp]" + line + "Example: /from 2026-09-20" + dateGuidance
+                    + line + "Add sharp to match only that exact date.";
+            default -> "";
+        };
+    }
+
+    /**
+     * Executes a recognized command, preserving validation and persistence failures for the caller.
+     */
+    private ResponseStatus executeCommand(Parser.ParsedCommand parsedCommand, Ui responseUi) throws AnacondaException {
         Command command = parsedCommand.command();
         String arguments = parsedCommand.arguments();
 

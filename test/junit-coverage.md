@@ -57,6 +57,13 @@ different descriptions/types/dates, empty and cleared lists, completed and loade
 date formats, console warnings, undo/redo, and save-failure rollback without a misleading notice.
 GUI tests verify purple command rows, a `Duplicate` badge, matching pale lavender replies, and undo recovery.
 
+Invalid arguments for `todo`, `deadline`, `event`, `mark`, `unmark`, `delete`, `find`, `/by`, and `/from`
+include the command format and an example in both GUI and console responses. Date hints explain both
+accepted formats and the optional `sharp` modifier; task-number hints refer to `list`. Tests cover missing
+fields, invalid dates and event order, invalid/overflowing/nonexistent task numbers, aliases, and extra
+filter arguments. Failures preserve storage and undo history. Simple commands, successful additions,
+duplicates, unknown commands, and storage errors do not receive these argument hints.
+
 ## Running the tests
 
 Undo coverage includes parser syntax, the UI success message, reusable task snapshots, all seven mutation

@@ -101,6 +101,67 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getCommandResponse_invalidArguments_showsCommandSpecificFormatAndExample() throws IOException {
+        String[][] cases = {
+            {"todo", "todo DESCRIPTION", "todo read book"},
+            {"deadline", "deadline DESCRIPTION /by DATE", "deadline report /by 2026-09-20"},
+            {"deadline report /by", "deadline DESCRIPTION /by DATE", "deadline report /by 2026-09-20"},
+            {"deadline /by 2026-09-20", "deadline DESCRIPTION /by DATE", "deadline report /by 2026-09-20"},
+            {"deadline report /by 2026-02-30", "deadline DESCRIPTION /by DATE", "deadline report /by 2026-09-20"},
+            {"event", "event DESCRIPTION /from START_DATE /to END_DATE",
+                "event meeting /from 2026-09-20 /to 2026-09-21"},
+            {"event meeting /from 2026-09-21 /to 2026-09-20", "event DESCRIPTION /from START_DATE /to END_DATE",
+                "event meeting /from 2026-09-20 /to 2026-09-21"},
+            {"event meeting /from tomorrow /to today", "event DESCRIPTION /from START_DATE /to END_DATE",
+                "event meeting /from 2026-09-20 /to 2026-09-21"},
+            {"mark", "mark TASK_NUMBER", "mark 1"},
+            {"MARK abc", "mark TASK_NUMBER", "mark 1"},
+            {"mark 2", "mark TASK_NUMBER", "mark 1"},
+            {"unmark", "unmark TASK_NUMBER", "unmark 1"},
+            {"unmark 1 2", "unmark TASK_NUMBER", "unmark 1"},
+            {"unmark 0", "unmark TASK_NUMBER", "unmark 1"},
+            {"delete", "delete TASK_NUMBER", "delete 1"},
+            {"delete 2147483648", "delete TASK_NUMBER", "delete 1"},
+            {"delete -1", "delete TASK_NUMBER", "delete 1"},
+            {"  FiNd  ", "find KEYWORD", "find book"},
+            {"/by", "/by DATE [sharp]", "/by 2026-09-20"},
+            {"BY tomorrow", "/by DATE [sharp]", "/by 2026-09-20"},
+            {"/BY 2026-09-20 extra", "/by DATE [sharp]", "/by 2026-09-20"},
+            {"/from", "/from DATE [sharp]", "/from 2026-09-20"},
+            {"FROM 2026-02-30 sharp", "/from DATE [sharp]", "/from 2026-09-20"},
+            {"/from 2026-09-20 sharp extra", "/from DATE [sharp]", "/from 2026-09-20"}
+        };
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        String saved = Files.readString(file);
+        for (String[] testCase : cases) {
+            Anaconda.CommandResponse response = anaconda.getCommandResponse(testCase[0]);
+            assertEquals(Anaconda.ResponseStatus.WARNING, response.status(), testCase[0]);
+            String guidance = "Format: " + testCase[1] + System.lineSeparator() + "Example: " + testCase[2];
+            assertTrue(response.text().contains(guidance), testCase[0]);
+            if (testCase[1].contains("DATE")) {
+                assertTrue(response.text().contains("Dates: yyyy-MM-dd or dd-MM-yyyy."), testCase[0]);
+            }
+            assertEquals(saved, Files.readString(file), testCase[0]);
+            String consoleOutput = runSession(file, testCase[0] + "\nbye\n");
+            assertTrue(consoleOutput.contains(guidance.replace("\r\n", "\n")), testCase[0]);
+        }
+        anaconda.getResponse("undo");
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void getCommandResponse_simpleCommandsAndSuccessfulInput_omitsArgumentGuidance() {
+        Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
+        for (String command : List.of("list extra", "clear extra", "bye extra", "undo extra", "undo",
+                "undo undo", "unknown", "", "todo book", "todo book", "find book", "list", "mark 1")) {
+            assertFalse(anaconda.getResponse(command).contains("Format:"), command);
+        }
+    }
+
+    @Test
     public void getCommandResponse_recognizedInvalidCommands_returnsWarning() {
         Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
         for (String input : List.of("todo", "deadline essay", "event meeting /from 2026-09-13",
@@ -119,7 +180,8 @@ public class AnacondaTest {
         String command = "event meeting /from 2026-09-14 /to 2026-09-13";
         Anaconda.CommandResponse response = anaconda.getCommandResponse(command);
         assertEquals(Anaconda.ResponseStatus.WARNING, response.status());
-        assertEquals("Oops! An event's start date cannot be later than its end date.", response.text());
+        assertTrue(response.text().startsWith("Oops! An event's start date cannot be later than its end date."
+                + System.lineSeparator() + "Format: event DESCRIPTION /from START_DATE /to END_DATE"));
         assertFalse(Files.exists(file));
 
         anaconda.getResponse("todo book");
@@ -155,8 +217,9 @@ public class AnacondaTest {
                     "event meeting /from 2020-01-01 /to " + date, "/by " + date, "/from " + date + " sharp")) {
                 Anaconda.CommandResponse response = anaconda.getCommandResponse(command);
                 assertEquals(Anaconda.ResponseStatus.WARNING, response.status(), command);
-                assertEquals("Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.",
-                        response.text(), command);
+                assertTrue(response.text().startsWith(
+                        "Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format."
+                                + System.lineSeparator() + "Format: "), command);
                 assertEquals(saved, Files.readString(file), command);
             }
         }
