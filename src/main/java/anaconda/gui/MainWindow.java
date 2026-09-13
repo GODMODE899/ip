@@ -27,7 +27,7 @@ public class MainWindow extends AnchorPane {
     private Anaconda anaconda;
 
     private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
-    private final Image anacondaImage = new Image(this.getClass().getResourceAsStream("/images/DaDuke.png"));
+    private final Image anacondaImage = new Image(this.getClass().getResourceAsStream("/images/Anaconda.png"));
 
     /**
      * Keeps the conversation scrolled to the newest dialog.
