@@ -26,8 +26,7 @@ public class MainWindow extends AnchorPane {
 
     private Anaconda anaconda;
 
-    private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
-    private final Image anacondaImage = new Image(this.getClass().getResourceAsStream("/images/DaDuke.png"));
+    private final Image anacondaImage = new Image(this.getClass().getResourceAsStream("/images/Anaconda.png"));
 
     /**
      * Keeps the conversation scrolled to the newest dialog.
@@ -52,13 +51,16 @@ public class MainWindow extends AnchorPane {
     @FXML
     private void handleUserInput() {
         String input = userInput.getText();
-        String response = anaconda.getResponse(input);
-        DialogBox anacondaDialog = DialogBox.getAnacondaDialog(response, anacondaImage);
-        if (GOODBYE_RESPONSE.equals(response)) {
+        Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
+        DialogBox userDialog = DialogBox.getUserDialog(input);
+        DialogBox anacondaDialog = DialogBox.getAnacondaDialog(response.text(), anacondaImage);
+        userDialog.setResponseStatus(response.status());
+        anacondaDialog.setResponseStatus(response.status());
+        if (GOODBYE_RESPONSE.equals(response.text())) {
             anacondaDialog.fadeDisplayPicture();
         }
         dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(input, userImage),
+                userDialog,
                 anacondaDialog
         );
         userInput.clear();

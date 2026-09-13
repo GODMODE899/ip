@@ -15,6 +15,8 @@ not a claim of measured 100% line or branch coverage; no coverage instrumentatio
 
 | Production class | Methods / behavior tested | Important cases |
 | --- | --- | --- |
+| `DialogBox` | `getUserDialog`, `getAnacondaDialog`, image fading | Avatar-free command prompt, empty input, long-command wrapping with CSS, multiline replies, real Anaconda image, fading only the image |
+| `MainWindow` | `initialize`, `setAnaconda`, command submission through FXML | Scroll binding, command/reply ordering, clearing the input, successful and invalid commands, goodbye image fade, temporary storage |
 | `Parser` | `parse`, `parseTask`, `parseTaskNumber`, `parseKeyword`, `parseDateFilter`, `isExitCommand`, `isClearConfirmed` | All command types, aliases, whitespace, required fields, invalid markers, both date formats, leap dates, integer boundaries/overflow, search keywords, sharp modifiers, helpful errors |
 | `TaskList` | Constructors, `add`, `delete`, `mark`, `clear`, `size`, `asList`, `find`, `filterByDate` | Defensive collection copy, ordering, first/last indices, invalid indices, repeated status changes, empty lists, unmodifiable snapshots, case-insensitive description search, inclusive/exact dates, event end dates, ToDo exclusion |
 | `Storage` | `loadTasks`, `saveTasks` | Missing file/folder, empty file, independently specified input/output formats, all task types/statuses, dates, overwrite/truncate, Unicode, independent loads, file I/O failures |
@@ -25,9 +27,19 @@ not a claim of measured 100% line or branch coverage; no coverage instrumentatio
 | `Ui` | All public methods, including `readCommand` and `close` | Exact messages, banner, list/search headers and numbering, empty lists, counts, clear prompts, input trimming, reader closure |
 | `Anaconda` | Constructor, `run`, `getResponse`, `main` | Console/GUI command dispatch, saved state after restart, invalid-command recovery, clear confirmation/cancellation, description search, date filters, load/save errors, selected task updates, no success response after failed saves, relative default path in a child JVM |
 
-`Command` contains only enum constants, and `AnacondaException` only forwards a message to its superclass;
-neither has custom non-trivial methods needing a dedicated test class. Their behavior is exercised by parser
-and application tests. The parser's nested records are covered through their returned values.
+`Command` contains only enum constants. `AnacondaException` carries a message and reason; application tests
+exercise invalid-input, unknown-command, and storage-error reasons through response statuses. The parser's
+nested records and `Anaconda.CommandResponse` are covered through their returned values.
+
+`Anaconda.getCommandResponse` tests verify success, recognized but invalid input, unknown and blank commands,
+mixed case and slash aliases, clear confirmations/cancellations, and save-failure rollback. `getResponse`
+keeps the same text-only API and its existing regression tests. GUI submission tests apply the actual CSS
+and check dark green, yellow, and red command rows with matching reply backgrounds, including recovery
+from an error to a successful command.
+Command rows also show text badges (`OK`, `Check input`, `Error`) so status does not rely on color.
+GUI tests check the badges, long-command wrapping without badge overlap, and the retained 99 px avatar.
+Input-bar checks cover the command placeholder, aligned controls, readable fonts, Enter and Send submission,
+and separation from the conversation when the window is resized, including a short window.
 
 The tests preserve current behavior; they do not add new date-order validation, storage escaping, or recovery
 from corrupted storage files. Corrupted-file recovery remains outside the implemented feature set.
@@ -54,6 +66,8 @@ Use Java 25. From the repository root in PowerShell:
 On macOS/Linux use `./gradlew` instead. If Gradle reports the test task as up-to-date and you want to force
 another run, use `test --rerun-tasks`. The HTML report is `build/reports/tests/test/index.html`.
 The existing Gradle JUnit dependencies are sufficient; no additional framework or mocking dependency is used.
+GUI tests initialize JavaFX and construct scenes without opening windows; a graphical desktop environment
+is required for the JavaFX toolkit (or a virtual display on Linux).
 
 Storage/application tests use JUnit `@TempDir`, never the project's `data/anaconda.txt`.
 Console tests restore `System.in`/`System.out` in try-with-resources and share a resource lock;

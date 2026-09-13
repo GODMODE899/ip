@@ -3,6 +3,7 @@ package anaconda.gui;
 import java.io.IOException;
 import java.util.Collections;
 
+import anaconda.Anaconda.ResponseStatus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -15,8 +16,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 /**
- * Represents a dialog box consisting of an ImageView to represent the speaker's face
- * and a label containing text from the speaker.
+ * Displays user commands without an avatar and Anaconda responses beside its image.
  */
 public class DialogBox extends HBox {
     private static final double FADED_OPACITY = 0.5;
@@ -25,6 +25,8 @@ public class DialogBox extends HBox {
     private Label dialog;
     @FXML
     private ImageView displayPicture;
+
+    private Label commandStatus;
 
     private DialogBox(String text, Image image) {
         try {
@@ -59,14 +61,46 @@ public class DialogBox extends HBox {
     }
 
     /**
-     * Creates a right-aligned dialog for user input.
+     * Applies the command outcome to this row and its text using the shared status palette.
+     */
+    void setResponseStatus(ResponseStatus status) {
+        getStyleClass().removeAll("success", "warning", "error");
+        String styleClass = switch (status) {
+            case SUCCESS -> "success";
+            case WARNING -> "warning";
+            case ERROR -> "error";
+        };
+        getStyleClass().add(styleClass);
+        if (commandStatus != null) {
+            commandStatus.setText(switch (status) {
+                case SUCCESS -> "OK";
+                case WARNING -> "Check input";
+                case ERROR -> "Error";
+            });
+        }
+    }
+
+    /**
+     * Creates a command row with a prompt and no user image.
      *
      * @param text Text entered by the user.
-     * @param image Image representing the user.
-     * @return Dialog displaying the user's message.
+     * @return Dialog displaying the user's command.
      */
-    public static DialogBox getUserDialog(String text, Image image) {
-        return new DialogBox(text, image);
+    public static DialogBox getUserDialog(String text) {
+        DialogBox dialogBox = new DialogBox(text, null);
+        Label prompt = new Label(">");
+        prompt.getStyleClass().add("command-prompt");
+        prompt.setMinWidth(USE_PREF_SIZE);
+        dialogBox.commandStatus = new Label();
+        dialogBox.commandStatus.getStyleClass().add("command-status");
+        dialogBox.commandStatus.setMinWidth(USE_PREF_SIZE);
+        dialogBox.getChildren().setAll(prompt, dialogBox.dialog, dialogBox.commandStatus);
+        dialogBox.setAlignment(Pos.TOP_LEFT);
+        dialogBox.getStyleClass().add("command-row");
+        dialogBox.dialog.getStyleClass().add("command-label");
+        dialogBox.dialog.setMaxWidth(Double.MAX_VALUE);
+        dialogBox.setResponseStatus(ResponseStatus.SUCCESS);
+        return dialogBox;
     }
 
     /**

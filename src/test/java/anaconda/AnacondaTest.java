@@ -30,6 +30,64 @@ public class AnacondaTest {
     Path temporaryDirectory;
 
     @Test
+    public void getCommandResponse_validCommands_returnsSuccessAndExecutesOnce() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        Anaconda.CommandResponse response = anaconda.getCommandResponse("  ToDo read book  ");
+        assertEquals(Anaconda.ResponseStatus.SUCCESS, response.status());
+        assertTrue(response.text().contains("Now you have 1 tasks in the list."));
+        assertEquals(List.of("T | 0 | read book"), Files.readAllLines(file));
+        for (String input : List.of("list", "/BY 2026-09-13", "/from 2026-09-13 sharp", "bye")) {
+            assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse(input).status(), input);
+        }
+    }
+
+    @Test
+    public void getCommandResponse_recognizedInvalidCommands_returnsWarning() {
+        Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
+        for (String input : List.of("todo", "deadline essay", "event meeting /from 2026-09-13",
+                "deadline essay /by 2026-02-30", "mark abc", "mark 1", "delete 0", "find", "list extra",
+                "clear extra", "bye now", "undo nonsense", "undo", "undo undo", "/BY", "/from invalid")) {
+            Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
+            assertEquals(Anaconda.ResponseStatus.WARNING, response.status(), input);
+            assertTrue(response.text().startsWith("Oops!"), input);
+        }
+    }
+
+    @Test
+    public void getCommandResponse_unknownOrBlankInput_returnsError() {
+        Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
+        for (String input : List.of("blah", "todoo read book", "/todo read book", "yes", "", "   ", "???")) {
+            Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
+            assertEquals(Anaconda.ResponseStatus.ERROR, response.status(), input);
+            assertTrue(response.text().startsWith("Oops!"), input);
+        }
+    }
+
+    @Test
+    public void getCommandResponse_clearConfirmationAndCancellation_returnsSuccessInContext() {
+        Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
+        for (String input : List.of("todo book", "clear", "yes", "clear", "no", "clear", "blah")) {
+            assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse(input).status(), input);
+        }
+        assertEquals(Anaconda.ResponseStatus.ERROR, anaconda.getCommandResponse("blah").status());
+    }
+
+    @Test
+    public void getCommandResponse_saveFailure_returnsErrorAndRestoresTasks() throws IOException {
+        Path parent = temporaryDirectory.resolve("blocked");
+        Files.writeString(parent, "This file prevents creating the data directory.");
+        Anaconda anaconda = new Anaconda(parent.resolve("tasks.txt"));
+        Anaconda.CommandResponse response = anaconda.getCommandResponse("todo book");
+        assertEquals(Anaconda.ResponseStatus.ERROR, response.status());
+        assertEquals("Oops! I couldn't save your task list.", response.text());
+        assertEquals("Your list:", anaconda.getCommandResponse("list").text());
+        anaconda.getCommandResponse("clear");
+        assertEquals(Anaconda.ResponseStatus.ERROR, anaconda.getCommandResponse("yes").status());
+        assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("list").status());
+    }
+
+    @Test
     public void run_immediateBye_exitsWithoutCreatingDataFile() {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, " BYE \n");
