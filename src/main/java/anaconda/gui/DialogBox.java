@@ -3,6 +3,7 @@ package anaconda.gui;
 import java.io.IOException;
 import java.util.Collections;
 
+import anaconda.Anaconda.ResponseStatus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -55,6 +56,19 @@ public class DialogBox extends HBox {
      */
     void fadeDisplayPicture() {
         displayPicture.setOpacity(FADED_OPACITY);
+    }
+
+    /**
+     * Applies the command outcome to this row and its text using the shared status palette.
+     */
+    void setResponseStatus(ResponseStatus status) {
+        getStyleClass().removeAll("success", "warning", "error");
+        String styleClass = switch (status) {
+            case SUCCESS -> "success";
+            case WARNING -> "warning";
+            case ERROR -> "error";
+        };
+        getStyleClass().add(styleClass);
     }
 
     /**

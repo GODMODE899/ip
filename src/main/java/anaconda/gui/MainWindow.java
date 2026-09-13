@@ -51,13 +51,16 @@ public class MainWindow extends AnchorPane {
     @FXML
     private void handleUserInput() {
         String input = userInput.getText();
-        String response = anaconda.getResponse(input);
-        DialogBox anacondaDialog = DialogBox.getAnacondaDialog(response, anacondaImage);
-        if (GOODBYE_RESPONSE.equals(response)) {
+        Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
+        DialogBox userDialog = DialogBox.getUserDialog(input);
+        DialogBox anacondaDialog = DialogBox.getAnacondaDialog(response.text(), anacondaImage);
+        userDialog.setResponseStatus(response.status());
+        anacondaDialog.setResponseStatus(response.status());
+        if (GOODBYE_RESPONSE.equals(response.text())) {
             anacondaDialog.fadeDisplayPicture();
         }
         dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(input),
+                userDialog,
                 anacondaDialog
         );
         userInput.clear();

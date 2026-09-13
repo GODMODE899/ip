@@ -47,7 +47,7 @@ public class Parser {
     public ParsedCommand parse(String input) throws AnacondaException {
         String trimmedInput = input.trim();
         if (trimmedInput.isEmpty()) {
-            throw new AnacondaException("Please enter a command.");
+            throw new AnacondaException("Please enter a command.", AnacondaException.Reason.UNKNOWN_COMMAND);
         }
 
         String[] inputParts = trimmedInput.split("\\s+", 2);
@@ -184,7 +184,7 @@ public class Parser {
                 default -> Command.valueOf(commandWord.toUpperCase(Locale.ROOT));
             };
         } catch (IllegalArgumentException exception) {
-            throw new AnacondaException("I don't recognize that command.");
+            throw new AnacondaException("I don't recognize that command.", AnacondaException.Reason.UNKNOWN_COMMAND);
         }
     }
 

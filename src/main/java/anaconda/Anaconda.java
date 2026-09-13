@@ -23,6 +23,22 @@ import anaconda.ui.Ui;
 public class Anaconda {
     private static final Path DATA_FILE = Path.of("data", "anaconda.txt");
 
+    /**
+     * Describes successful input, a recognized command needing correction, or an error.
+     */
+    public enum ResponseStatus {
+        SUCCESS, WARNING, ERROR
+    }
+
+    /**
+     * Carries response text and its presentation status without exposing GUI styling to command handlers.
+     *
+     * @param text Response to display.
+     * @param status Outcome of processing this input.
+     */
+    public record CommandResponse(String text, ResponseStatus status) {
+    }
+
     private final Storage storage;
     private final TaskList tasks;
     private final Ui ui;
@@ -104,23 +120,34 @@ public class Anaconda {
      * @return Response to display in the GUI.
      */
     public String getResponse(String input) {
+        return getCommandResponse(input).text();
+    }
+
+    /**
+     * Processes input once and returns its text and status, including pending clear confirmations.
+     *
+     * @param input Complete user input.
+     * @return Response whose status reflects validation and command execution.
+     */
+    public CommandResponse getCommandResponse(String input) {
         if (!isAwaitingGuiClearConfirmation && parser.isExitCommand(input)) {
             redoHistory.clear();
-            return "Alright, until next time.";
+            return new CommandResponse("Alright, until next time.", ResponseStatus.SUCCESS);
         }
 
         ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
+        ResponseStatus status;
         try (PrintStream responseOutput = new PrintStream(responseBuffer, true, StandardCharsets.UTF_8);
                 Ui responseUi = new Ui(InputStream.nullInputStream(), responseOutput)) {
-            processGuiInput(input, responseUi);
+            status = processGuiInput(input, responseUi);
         }
-        return responseBuffer.toString(StandardCharsets.UTF_8).stripTrailing();
+        return new CommandResponse(responseBuffer.toString(StandardCharsets.UTF_8).stripTrailing(), status);
     }
 
     /**
      * Processes a GUI command or a pending clear confirmation using the existing command handlers.
      */
-    private void processGuiInput(String input, Ui responseUi) {
+    private ResponseStatus processGuiInput(String input, Ui responseUi) {
         try {
             if (isAwaitingGuiClearConfirmation) {
                 isAwaitingGuiClearConfirmation = false;
@@ -128,8 +155,13 @@ public class Anaconda {
             } else {
                 isAwaitingGuiClearConfirmation = handleCommand(input, responseUi);
             }
+            return ResponseStatus.SUCCESS;
         } catch (AnacondaException exception) {
             responseUi.showError(exception.getMessage());
+            return switch (exception.getReason()) {
+                case INVALID_INPUT -> ResponseStatus.WARNING;
+                case UNKNOWN_COMMAND, STORAGE_ERROR -> ResponseStatus.ERROR;
+            };
         }
     }
 
@@ -310,7 +342,7 @@ public class Anaconda {
             storage.saveTasks(tasks.asList());
         } catch (IOException exception) {
             tasks.restore(previousState);
-            throw new AnacondaException("I couldn't save your task list.");
+            throw new AnacondaException("I couldn't save your task list.", AnacondaException.Reason.STORAGE_ERROR);
         }
     }
 }

@@ -27,9 +27,15 @@ not a claim of measured 100% line or branch coverage; no coverage instrumentatio
 | `Ui` | All public methods, including `readCommand` and `close` | Exact messages, banner, list/search headers and numbering, empty lists, counts, clear prompts, input trimming, reader closure |
 | `Anaconda` | Constructor, `run`, `getResponse`, `main` | Console/GUI command dispatch, saved state after restart, invalid-command recovery, clear confirmation/cancellation, description search, date filters, load/save errors, selected task updates, no success response after failed saves, relative default path in a child JVM |
 
-`Command` contains only enum constants, and `AnacondaException` only forwards a message to its superclass;
-neither has custom non-trivial methods needing a dedicated test class. Their behavior is exercised by parser
-and application tests. The parser's nested records are covered through their returned values.
+`Command` contains only enum constants. `AnacondaException` carries a message and reason; application tests
+exercise invalid-input, unknown-command, and storage-error reasons through response statuses. The parser's
+nested records and `Anaconda.CommandResponse` are covered through their returned values.
+
+`Anaconda.getCommandResponse` tests verify success, recognized but invalid input, unknown and blank commands,
+mixed case and slash aliases, clear confirmations/cancellations, and save-failure rollback. `getResponse`
+keeps the same text-only API and its existing regression tests. GUI submission tests apply the actual CSS
+and check dark green, yellow, and red command rows with matching reply backgrounds, including recovery
+from an error to a successful command.
 
 The tests preserve current behavior; they do not add new date-order validation, storage escaping, or recovery
 from corrupted storage files. Corrupted-file recovery remains outside the implemented feature set.
