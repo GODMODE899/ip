@@ -15,8 +15,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 /**
- * Represents a dialog box consisting of an ImageView to represent the speaker's face
- * and a label containing text from the speaker.
+ * Displays user commands without an avatar and Anaconda responses beside its image.
  */
 public class DialogBox extends HBox {
     private static final double FADED_OPACITY = 0.5;
@@ -59,14 +58,21 @@ public class DialogBox extends HBox {
     }
 
     /**
-     * Creates a right-aligned dialog for user input.
+     * Creates a command row with a prompt and no user image.
      *
      * @param text Text entered by the user.
-     * @param image Image representing the user.
-     * @return Dialog displaying the user's message.
+     * @return Dialog displaying the user's command.
      */
-    public static DialogBox getUserDialog(String text, Image image) {
-        return new DialogBox(text, image);
+    public static DialogBox getUserDialog(String text) {
+        DialogBox dialogBox = new DialogBox(text, null);
+        Label prompt = new Label(">");
+        prompt.getStyleClass().add("command-prompt");
+        prompt.setMinWidth(USE_PREF_SIZE);
+        dialogBox.getChildren().setAll(prompt, dialogBox.dialog);
+        dialogBox.setAlignment(Pos.TOP_LEFT);
+        dialogBox.getStyleClass().add("command-row");
+        dialogBox.dialog.getStyleClass().add("command-label");
+        return dialogBox;
     }
 
     /**

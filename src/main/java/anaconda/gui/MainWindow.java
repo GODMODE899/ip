@@ -26,7 +26,6 @@ public class MainWindow extends AnchorPane {
 
     private Anaconda anaconda;
 
-    private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
     private final Image anacondaImage = new Image(this.getClass().getResourceAsStream("/images/Anaconda.png"));
 
     /**
@@ -58,7 +57,7 @@ public class MainWindow extends AnchorPane {
             anacondaDialog.fadeDisplayPicture();
         }
         dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(input, userImage),
+                DialogBox.getUserDialog(input),
                 anacondaDialog
         );
         userInput.clear();
