@@ -86,6 +86,38 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getCommandResponse_impossibleDates_warnsWithoutChangingTasksOrUndoHistory() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        String saved = Files.readString(file);
+        for (String date : List.of("2026-02-30", "30-02-2026", "2023-02-29", "29-02-2100")) {
+            for (String command : List.of("deadline report /by " + date,
+                    "event meeting /from " + date + " /to 2101-01-01",
+                    "event meeting /from 2020-01-01 /to " + date, "/by " + date, "/from " + date + " sharp")) {
+                Anaconda.CommandResponse response = anaconda.getCommandResponse(command);
+                assertEquals(Anaconda.ResponseStatus.WARNING, response.status(), command);
+                assertEquals("Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.",
+                        response.text(), command);
+                assertEquals(saved, Files.readString(file), command);
+            }
+        }
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."));
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void run_impossibleDate_reportsErrorAndAcceptsValidLeapDay() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file, "deadline report /by 2024-02-30\n"
+                + "deadline report /by 2024-02-29\nlist\nbye\n");
+        assertTrue(output.contains("Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format."));
+        assertTrue(output.contains("Your list:\n1.[D][ ] report (by: Feb 29 2024)"));
+        assertEquals(List.of("D | 0 | report | 2024-02-29"), Files.readAllLines(file));
+    }
+
+    @Test
     public void getCommandResponse_unknownOrBlankInput_returnsError() {
         Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
         for (String input : List.of("blah", "todoo read book", "/todo read book", "yes", "", "   ", "???")) {

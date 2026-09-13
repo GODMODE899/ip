@@ -237,7 +237,7 @@ public class Parser {
             try {
                 return LocalDate.parse(dateText, DAY_FIRST_DATE_FORMATTER);
             } catch (DateTimeParseException secondException) {
-                throw new AnacondaException("Dates must use yyyy-MM-dd or dd-MM-yyyy.");
+                throw new AnacondaException("Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.");
             }
         }
     }

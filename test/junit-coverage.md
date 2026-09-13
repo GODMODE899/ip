@@ -46,6 +46,10 @@ date formats, equal dates, leap-day and year boundaries, yellow GUI warning stat
 and preservation of saved tasks and undo history after invalid input. Validation applies to new commands;
 loading existing saved events is unchanged. Storage escaping and corrupted-file recovery remain outside
 the implemented feature set.
+Impossible calendar dates are rejected for deadlines, both event endpoints, and both date filters.
+Regression cases include February 30 in leap and non-leap years, February 29 in non-leap years (including
+2100), and valid leap days in 2000 and 2024, in both accepted formats. Invalid inputs produce a yellow
+warning with calendar-date guidance and preserve saved tasks and undo history.
 
 ## Running the tests
 
