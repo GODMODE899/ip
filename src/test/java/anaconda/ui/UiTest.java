@@ -170,8 +170,8 @@ public class UiTest {
     public void showDuplicateWarning_addedDuplicate_explainsAdditionAndUndo() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showDuplicateWarning();
-            assertEquals("Duplicate: this task is already in your list. I've added it anyway.\n"
-                    + "Type undo to remove this addition if it was accidental.\n", session.output());
+            assertEquals("Did you forget? This task already exists.\n"
+                    + "We can undo anyways. . .\n", session.output());
         }
     }
 

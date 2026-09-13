@@ -50,6 +50,12 @@ public class MainWindowTest {
             ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");
             VBox dialogs = (VBox) scrollPane.getContent();
             assertTrue(scrollPane.vvalueProperty().isBound());
+            assertEquals(1, dialogs.getChildren().size());
+            DialogBox greeting = (DialogBox) dialogs.getChildren().getFirst();
+            assertTrue(greeting.getStyleClass().contains("success"));
+            Label greetingText = (Label) greeting.getChildren().get(1);
+            assertEquals("Yo, it's Anaconda. What do you need?", greetingText.getText());
+            assertTrue(greeting.getChildren().getFirst() instanceof ImageView);
 
             for (String command : new String[] {"todo read book", "todo", "nonsense", "clear", "undo", "bye"}) {
                 input.setText(command);
@@ -67,8 +73,8 @@ public class MainWindowTest {
             String[] expectedStatuses = {"OK", "Check input", "Error", "OK", "OK", "OK"};
             String[] expectedColors = {"#174d35", "#ffe082", "#b3261e", "#174d35", "#174d35", "#174d35"};
             String[] expectedReplyColors = {"#d9ffe2", "#fff3c4", "#ffe4e1", "#d9ffe2", "#d9ffe2", "#d9ffe2"};
-            assertEquals(12, dialogs.getChildren().size());
-            for (int i = 0; i < dialogs.getChildren().size(); i += 2) {
+            assertEquals(13, dialogs.getChildren().size());
+            for (int i = 1; i < dialogs.getChildren().size(); i += 2) {
                 DialogBox command = (DialogBox) dialogs.getChildren().get(i);
                 assertFalse(command.getChildren().stream().anyMatch(ImageView.class::isInstance));
                 DialogBox reply = (DialogBox) dialogs.getChildren().get(i + 1);
@@ -81,20 +87,20 @@ public class MainWindowTest {
                 assertEquals(Color.web(expectedReplyColors[i / 2]),
                         replyText.getBackground().getFills().get(0).getFill());
             }
-            DialogBox added = (DialogBox) dialogs.getChildren().get(1);
+            DialogBox added = (DialogBox) dialogs.getChildren().get(2);
             assertTrue(((Label) added.getChildren().get(1)).getText().contains("read book"));
-            DialogBox warning = (DialogBox) dialogs.getChildren().get(3);
+            DialogBox warning = (DialogBox) dialogs.getChildren().get(4);
             assertTrue(((Label) warning.getChildren().get(1)).getText().contains("cannot be empty"));
             assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Format: todo DESCRIPTION"));
             assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Example: todo read book"));
-            DialogBox error = (DialogBox) dialogs.getChildren().get(5);
+            DialogBox error = (DialogBox) dialogs.getChildren().get(6);
             assertTrue(((Label) error.getChildren().get(1)).getText().contains("Hang on."));
             assertTrue(((Label) error.getChildren().get(1)).getText().contains("Available commands:"));
-            DialogBox cleared = (DialogBox) dialogs.getChildren().get(7);
+            DialogBox cleared = (DialogBox) dialogs.getChildren().get(8);
             assertEquals("Fine. Everything's gone.", ((Label) cleared.getChildren().get(1)).getText());
-            DialogBox restored = (DialogBox) dialogs.getChildren().get(9);
+            DialogBox restored = (DialogBox) dialogs.getChildren().get(10);
             assertTrue(((Label) restored.getChildren().get(1)).getText().contains("1.[T][ ] read book"));
-            DialogBox goodbye = (DialogBox) dialogs.getChildren().get(11);
+            DialogBox goodbye = (DialogBox) dialogs.getChildren().get(12);
             assertEquals(0.5, goodbye.getChildren().get(0).getOpacity());
             return null;
         });
@@ -116,20 +122,20 @@ public class MainWindowTest {
             }
             root.applyCss();
             root.layout();
-            DialogBox duplicate = (DialogBox) dialogs.getChildren().get(2);
+            DialogBox duplicate = (DialogBox) dialogs.getChildren().get(3);
             assertTrue(duplicate.getStyleClass().contains("duplicate"));
             assertFalse(duplicate.getStyleClass().contains("success"));
             assertEquals("Duplicate", ((Label) duplicate.getChildren().get(2)).getText());
             assertEquals(Color.web("#6f42a6"), duplicate.getBackground().getFills().getFirst().getFill());
-            DialogBox reply = (DialogBox) dialogs.getChildren().get(3);
+            DialogBox reply = (DialogBox) dialogs.getChildren().get(4);
             Label replyText = (Label) reply.getChildren().get(1);
             assertEquals(Color.web("#f1e7fb"), replyText.getBackground().getFills().getFirst().getFill());
-            assertTrue(replyText.getText().contains("Duplicate:"));
-            assertTrue(replyText.getText().contains("Type undo"));
-            DialogBox undo = (DialogBox) dialogs.getChildren().get(4);
+            assertTrue(replyText.getText().contains("This task already exists."));
+            assertTrue(replyText.getText().contains("We can undo"));
+            DialogBox undo = (DialogBox) dialogs.getChildren().get(5);
             assertEquals("OK", ((Label) undo.getChildren().get(2)).getText());
             assertEquals(Color.web("#174d35"), undo.getBackground().getFills().getFirst().getFill());
-            Label undoText = (Label) ((DialogBox) dialogs.getChildren().get(5)).getChildren().get(1);
+            Label undoText = (Label) ((DialogBox) dialogs.getChildren().get(6)).getChildren().get(1);
             assertTrue(undoText.getText().contains("1.[T][ ] book"));
             assertFalse(undoText.getText().contains("2.[T]"));
             return null;
@@ -145,8 +151,8 @@ public class MainWindowTest {
             AnchorPane root = loader.load();
             loader.<MainWindow>getController().setAnaconda(new Anaconda(file));
             VBox dialogs = (VBox) ((ScrollPane) root.lookup("#scrollPane")).getContent();
-            assertEquals(1, dialogs.getChildren().size());
-            DialogBox warning = (DialogBox) dialogs.getChildren().getFirst();
+            assertEquals(2, dialogs.getChildren().size());
+            DialogBox warning = (DialogBox) dialogs.getChildren().getLast();
             assertTrue(warning.getStyleClass().contains("error"));
             assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Starting with a new empty list."));
             return null;

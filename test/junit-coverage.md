@@ -79,6 +79,9 @@ Personality wording is checked through exact UI output, parser errors, console/G
 and the goodbye avatar fade. Task rows, counts, command guidance, and status colors retain their existing
 formatting and behavior. Empty search/date-filter results say `Nothing. No matching tasks.`
 
+The GUI opens with a single green Anaconda greeting before any commands. GUI tests verify its text,
+avatar, command/reply ordering, and preservation of the red load-error notice after the greeting.
+
 ## Running the tests
 
 Undo coverage includes parser syntax, the UI success message, reusable task snapshots, all seven mutation

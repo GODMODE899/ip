@@ -60,8 +60,8 @@ public class AnacondaTest {
             Anaconda.CommandResponse response = anaconda.getCommandResponse(commands[i][1]);
             assertEquals(Anaconda.ResponseStatus.DUPLICATE, response.status());
             assertTrue(response.text().contains("Now you have 2 tasks in the list."));
-            assertTrue(response.text().contains("Duplicate: this task is already in your list. I've added it anyway."));
-            assertTrue(response.text().contains("Type undo to remove this addition if it was accidental."));
+            assertTrue(response.text().contains("Did you forget? This task already exists."));
+            assertTrue(response.text().contains("We can undo anyways. . ."));
             List<String> duplicated = Files.readAllLines(file);
             assertEquals(2, duplicated.size());
             assertEquals(original.getFirst(), duplicated.getFirst());
@@ -95,8 +95,8 @@ public class AnacondaTest {
     public void run_duplicateTask_warnsAndLeavesRemovalToUser() throws IOException {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "todo book\ntodo book\nlist\nundo\nbye\n");
-        assertTrue(output.contains("Duplicate: this task is already in your list. I've added it anyway."));
-        assertTrue(output.contains("Type undo to remove this addition if it was accidental."));
+        assertTrue(output.contains("Did you forget? This task already exists."));
+        assertTrue(output.contains("We can undo anyways. . ."));
         assertTrue(output.contains("Here's what you've got:\n1.[T][ ] book\n2.[T][ ] book\n"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
