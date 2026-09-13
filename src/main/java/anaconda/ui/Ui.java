@@ -52,7 +52,7 @@ public class Ui implements AutoCloseable {
                 LINE,
                 banner,
                 "Yo, it's Anaconda.",
-                "What do you want?");
+                "What do you need?");
     }
 
     /**
@@ -77,7 +77,7 @@ public class Ui implements AutoCloseable {
      * @param message Explanation of the error.
      */
     public void showError(String message) {
-        showToUser("Oops! " + message);
+        showToUser("Hang on. " + message);
     }
 
     /**
@@ -107,7 +107,11 @@ public class Ui implements AutoCloseable {
      * @param isFiltered Whether these tasks are a search result.
      */
     public void showTasks(List<Task> tasks, boolean isFiltered) {
-        showToUser(isFiltered ? "Matching tasks:" : "Your list:");
+        if (isFiltered) {
+            showFindResults(tasks);
+            return;
+        }
+        showToUser("Here's what you've got:");
         showNumberedTasks(tasks);
     }
 
@@ -117,7 +121,7 @@ public class Ui implements AutoCloseable {
      * @param tasks Matching tasks in their original order.
      */
     public void showFindResults(List<Task> tasks) {
-        showToUser("Here are the matching tasks in your list:");
+        showToUser(tasks.isEmpty() ? "Nothing. No matching tasks." : "Found these:");
         showNumberedTasks(tasks);
     }
 
@@ -138,7 +142,7 @@ public class Ui implements AutoCloseable {
      */
     public void showTaskAdded(Task task, int taskCount) {
         showToUser(
-                "Got it. I've added this task:",
+                "Alright, added it:",
                 "  " + task,
                 "Now you have " + taskCount + " tasks in the list.");
     }
@@ -147,8 +151,8 @@ public class Ui implements AutoCloseable {
      * Warns that the newly added task duplicates an existing task and explains how to undo it.
      */
     public void showDuplicateWarning() {
-        showToUser("Duplicate: this task is already in your list. I've added it anyway.",
-                "Type undo to remove this addition if it was accidental.");
+        showToUser("Did you forget? This task already exists.",
+                "We can undo anyways. . .");
     }
 
     /**
@@ -159,7 +163,7 @@ public class Ui implements AutoCloseable {
      */
     public void showTaskRemoved(Task task, int taskCount) {
         showToUser(
-                "Noted. I've removed this task:",
+                "Gone. Hope you didn't need that:",
                 "  " + task,
                 "Now you have " + taskCount + " tasks in the list.");
     }
@@ -172,7 +176,7 @@ public class Ui implements AutoCloseable {
      */
     public void showMarked(Task task, boolean isDone) {
         showToUser(
-                isDone ? "Marked it done for you:" : "Really? Unmarked? Alright . . .",
+                isDone ? "Fine, that's done now:" : "Really? Unmarked? Alright . . .",
                 "  " + task);
     }
 
@@ -201,7 +205,7 @@ public class Ui implements AutoCloseable {
      * Displays the farewell message.
      */
     public void showGoodbye() {
-        showToUser(LINE, "Alright, until next time.", LINE);
+        showToUser(LINE, "Alright, off you go. Try to get something done.", LINE);
     }
 
     /**

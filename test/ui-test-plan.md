@@ -44,30 +44,30 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [T][ ] borrow book
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 3 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Your list:
+Here's what you've got:
 1.[T][ ] borrow book
 2.[D][ ] return book (by: Oct 15 2019)
 3.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -104,52 +104,52 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [T][ ] read book
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 3 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Noted. I've removed this task:
+Gone. Hope you didn't need that:
   [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Your list:
+Here's what you've got:
 1.[T][ ] read book
 2.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
-Oops! Task 3 does not exist.
+Hang on. Task 3 does not exist.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Please provide one task number.
+Hang on. I need one task number here.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Task 0 does not exist.
+Hang on. Task 0 does not exist.
 ____________________________________________________________
 ____________________________________________________________
-Noted. I've removed this task:
+Gone. Hope you didn't need that:
   [T][ ] read book
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Your list:
+Here's what you've got:
 1.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -188,50 +188,50 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Oops! Please enter a command.
-____________________________________________________________
-____________________________________________________________
-Oops! The description of a todo cannot be empty.
+Hang on. Give me a command to work with.
 ____________________________________________________________
 ____________________________________________________________
-Oops! I don't recognize that command.
+Hang on. The description of a todo cannot be empty.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Hang on. Yeah... I don't recognize that command.
+____________________________________________________________
+____________________________________________________________
+Alright, added it:
   [T][ ] read book
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Please provide one task number.
+Hang on. I need one task number here.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Task 2 does not exist.
+Hang on. Task 2 does not exist.
 ____________________________________________________________
 ____________________________________________________________
-Marked it done for you:
+Fine, that's done now:
   [T][X] read book
 ____________________________________________________________
 ____________________________________________________________
-Oops! Task 0 does not exist.
+Hang on. Task 0 does not exist.
 ____________________________________________________________
 ____________________________________________________________
 Really? Unmarked? Alright . . .
   [T][ ] read book
 ____________________________________________________________
 ____________________________________________________________
-Oops! The list command does not take extra text.
+Hang on. The list command does not take extra text.
 ____________________________________________________________
 ____________________________________________________________
-Your list:
+Here's what you've got:
 1.[T][ ] read book
 ____________________________________________________________
 ____________________________________________________________
-Oops! The bye command cannot have extra text.
+Hang on. The bye command cannot have extra text.
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -266,39 +266,39 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Oops! A deadline needs '/by' followed by a date or time.
-____________________________________________________________
-____________________________________________________________
-Oops! A deadline needs a date or time after '/by'.
+Hang on. A deadline needs '/by' followed by a date or time.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Hang on. A deadline needs a date or time after '/by'.
+____________________________________________________________
+____________________________________________________________
+Alright, added it:
   [D][ ] return book (by: Oct 15 2019)
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.
+Hang on. Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.
 ____________________________________________________________
 ____________________________________________________________
-Oops! An event needs both '/from' and '/to' times.
+Hang on. An event needs both '/from' and '/to' times.
 ____________________________________________________________
 ____________________________________________________________
-Oops! An event needs times after both '/from' and '/to'.
+Hang on. An event needs times after both '/from' and '/to'.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Your list:
+Here's what you've got:
 1.[D][ ] return book (by: Oct 15 2019)
 2.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -329,28 +329,28 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [T][ ] borrow book
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 3 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Marked it done for you:
+Fine, that's done now:
   [D][X] return book (by: Oct 15 2019)
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -395,62 +395,62 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [D][ ] old deadline (by: Aug 18 2026)
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [D][ ] exact deadline (by: Aug 19 2026)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [D][ ] future deadline (by: Aug 20 2026)
 Now you have 3 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
 Now you have 4 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [E][ ] future-ending event (from: Aug 18 2026 to: Aug 21 2026)
 Now you have 5 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [T][ ] undated task
 Now you have 6 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Matching tasks:
+Found these:
 1.[D][ ] old deadline (by: Aug 18 2026)
 2.[D][ ] exact deadline (by: Aug 19 2026)
 3.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
 ____________________________________________________________
 ____________________________________________________________
-Matching tasks:
+Found these:
 1.[D][ ] exact deadline (by: Aug 19 2026)
 2.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
 ____________________________________________________________
 ____________________________________________________________
-Matching tasks:
+Found these:
 1.[D][ ] exact deadline (by: Aug 19 2026)
 2.[D][ ] future deadline (by: Aug 20 2026)
 3.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
 4.[E][ ] future-ending event (from: Aug 18 2026 to: Aug 21 2026)
 ____________________________________________________________
 ____________________________________________________________
-Matching tasks:
+Found these:
 1.[D][ ] exact deadline (by: Aug 19 2026)
 2.[E][ ] exact-ending event (from: Aug 17 2026 to: Aug 19 2026)
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -480,18 +480,18 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Oops! Use '/by DATE' or '/by DATE sharp'.
-____________________________________________________________
-____________________________________________________________
-Oops! Use '/by DATE' or '/by DATE sharp'.
+Hang on. Use '/by DATE' or '/by DATE sharp'.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.
+Hang on. Use '/by DATE' or '/by DATE sharp'.
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Hang on. Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.
+____________________________________________________________
+____________________________________________________________
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -522,14 +522,14 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [T][ ] borrow book
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
@@ -537,10 +537,10 @@ ____________________________________________________________
 Fine. Everything's gone.
 ____________________________________________________________
 ____________________________________________________________
-Your list:
+Here's what you've got:
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -577,9 +577,9 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [T][ ] borrow book
 Now you have 1 tasks in the list.
 ____________________________________________________________
@@ -588,15 +588,15 @@ Fine. Everything's gone.
 ____________________________________________________________
 ____________________________________________________________
 Undid the previous command.
-Your list:
+Here's what you've got:
 1.[T][ ] borrow book
 ____________________________________________________________
 ____________________________________________________________
-Your list:
+Here's what you've got:
 1.[T][ ] borrow book
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -632,9 +632,9 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Your list:
+Here's what you've got:
 1.[T][ ] borrow book
 2.[D][X] return book (by: Oct 15 2019)
 3.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
@@ -644,12 +644,12 @@ Really? Unmarked? Alright . . .
   [D][ ] return book (by: Oct 15 2019)
 ____________________________________________________________
 ____________________________________________________________
-Noted. I've removed this task:
+Gone. Hope you didn't need that:
   [T][ ] borrow book
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 
@@ -693,48 +693,48 @@ ____________________________________________________________
 /_/   \_\_| \_/_/   \_\____\___/|_| \_|____/_/   \_\
 
 Yo, it's Anaconda.
-What do you want?
+What do you need?
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [T][ ] read book
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [D][ ] return book (by: Oct 15 2019)
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 Now you have 3 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Got it. I've added this task:
+Alright, added it:
   [T][ ] buy groceries
 Now you have 4 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Marked it done for you:
+Fine, that's done now:
   [T][X] read book
 ____________________________________________________________
 ____________________________________________________________
-Here are the matching tasks in your list:
+Found these:
 1.[T][X] read book
 2.[D][ ] return book (by: Oct 15 2019)
 ____________________________________________________________
 ____________________________________________________________
-Here are the matching tasks in your list:
+Found these:
 1.[E][ ] project meeting (from: Oct 15 2019 to: Oct 16 2019)
 ____________________________________________________________
 ____________________________________________________________
-Here are the matching tasks in your list:
+Found these:
 ____________________________________________________________
 ____________________________________________________________
-Oops! Please provide a keyword to find.
+Hang on. Give me a keyword to look for.
 ____________________________________________________________
 ____________________________________________________________
-Alright, until next time.
+Alright, off you go. Try to get something done.
 ____________________________________________________________
 ```
 

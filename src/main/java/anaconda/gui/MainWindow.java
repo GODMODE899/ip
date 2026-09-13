@@ -14,7 +14,7 @@ import javafx.scene.layout.VBox;
  * Controller for the main GUI.
  */
 public class MainWindow extends AnchorPane {
-    private static final String GOODBYE_RESPONSE = "Alright, until next time.";
+    private static final String GOODBYE_RESPONSE = "Alright, off you go. Try to get something done.";
 
     @FXML
     private ScrollPane scrollPane;
@@ -30,11 +30,14 @@ public class MainWindow extends AnchorPane {
     private final Image anacondaImage = new Image(this.getClass().getResourceAsStream("/images/Anaconda.png"));
 
     /**
-     * Keeps the conversation scrolled to the newest dialog.
+     * Shows the greeting once when the window loads and keeps the newest dialog visible.
      */
     @FXML
     public void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
+        DialogBox greeting = DialogBox.getAnacondaDialog("Yo, it's Anaconda. What do you need?", anacondaImage);
+        greeting.setResponseStatus(Anaconda.ResponseStatus.SUCCESS);
+        dialogContainer.getChildren().add(greeting);
     }
 
     /**

@@ -78,13 +78,13 @@ public class DialogBoxTest {
         JavaFxTestSupport.runOnFxThread(() -> {
             Image image = new Image(getClass().getResourceAsStream("/images/Anaconda.png"));
             assertFalse(image.isError());
-            DialogBox box = DialogBox.getAnacondaDialog("Your list:\n1.[T][ ] read book", image);
+            DialogBox box = DialogBox.getAnacondaDialog("Here's what you've got:\n1.[T][ ] read book", image);
             assertEquals(Pos.TOP_LEFT, box.getAlignment());
             assertSame(image, ((ImageView) box.getChildren().get(0)).getImage());
             assertEquals(99.0, ((ImageView) box.getChildren().get(0)).getFitWidth());
             assertEquals(99.0, ((ImageView) box.getChildren().get(0)).getFitHeight());
             Label label = (Label) box.getChildren().get(1);
-            assertEquals("Your list:\n1.[T][ ] read book", label.getText());
+            assertEquals("Here's what you've got:\n1.[T][ ] read book", label.getText());
             assertTrue(label.getStyleClass().contains("reply-label"));
             assertTrue(label.isWrapText());
             box.fadeDisplayPicture();

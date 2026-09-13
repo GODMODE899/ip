@@ -19,7 +19,7 @@ undo
 
 The book task returns marked as done. Another `undo` makes it incomplete, and another removes it.
 
-An empty history raises `AnacondaException`, displayed as `Oops! There is nothing to undo.`
+An empty history raises `AnacondaException`, displayed as `Hang on. There is nothing to undo.`
 Command names are case-insensitive.
 
 Type `undo undo` to reverse the most recent undo. Repeating it reapplies undone commands in order,
@@ -39,7 +39,7 @@ This is available only during consecutive `undo` and `undo undo` commands. Any o
 the chain, including list/search/date-filter commands, invalid input, a new task change, and a clear
 command. Ordinary undo history remains available; the next successful `undo`
 starts a new chain. `undo undo` with nothing available raises `AnacondaException`, displayed as
-`Oops! There is no undo to reverse.` An exhausted history or a failed undo/redo save does not end the chain.
+`Hang on. There is no undo to reverse.` An exhausted history or a failed undo/redo save does not end the chain.
 Only `undo` and `undo undo` are accepted; extra arguments such as `undo undo undo` are rejected.
 
 List/search/date-filter commands and invalid commands do not consume ordinary undo history.

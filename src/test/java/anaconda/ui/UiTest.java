@@ -37,7 +37,7 @@ public class UiTest {
                 ui.showError("Custom error.");
             }
             output.println("Still open.");
-            assertEquals("Oops! Custom error.\nStill open.\n",
+            assertEquals("Hang on. Custom error.\nStill open.\n",
                     outputBuffer.toString(StandardCharsets.UTF_8).replace("\r\n", "\n"));
             assertEquals("", session.output());
             try (Ui consoleUi = new Ui()) {
@@ -67,7 +67,7 @@ public class UiTest {
                     + "  / _ \\ |  \\| | / _ \\| |  | | | |  \\| | | | |/ _ \\\n"
                     + " / ___ \\| |\\  |/ ___ \\ |__| |_| | |\\  | |_| / ___ \\\n"
                     + "/_/   \\_\\_| \\_/_/   \\_\\____\\___/|_| \\_|____/_/   \\_\\\n"
-                    + "\nYo, it's Anaconda.\nWhat do you want?\n";
+                    + "\nYo, it's Anaconda.\nWhat do you need?\n";
             assertEquals(expected, session.output());
         }
     }
@@ -77,7 +77,7 @@ public class UiTest {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showLine();
             ui.showGoodbye();
-            assertEquals(LINE + LINE + "Alright, until next time.\n" + LINE, session.output());
+            assertEquals(LINE + LINE + "Alright, off you go. Try to get something done.\n" + LINE, session.output());
         }
     }
 
@@ -96,7 +96,7 @@ public class UiTest {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showError("Bad command.");
             ui.showLoadingError();
-            assertEquals("Oops! Bad command.\nOops! Your saved list was compromised or could not be read. "
+            assertEquals("Hang on. Bad command.\nHang on. Your saved list was compromised or could not be read. "
                     + "Starting with a new empty list.\n", session.output());
         }
     }
@@ -112,17 +112,17 @@ public class UiTest {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showTasks(tasks, false);
             ui.showTasks(tasks, true);
-            assertEquals("Your list:\n" + rows + "Matching tasks:\n" + rows, session.output());
+            assertEquals("Here's what you've got:\n" + rows + "Found these:\n" + rows, session.output());
             assertEquals(3, tasks.size());
         }
     }
 
     @Test
-    public void showTasks_emptyLists_printsOnlyHeaders() {
+    public void showTasks_emptyLists_printsListHeaderAndNoMatchesMessage() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showTasks(List.of(), false);
             ui.showTasks(List.of(), true);
-            assertEquals("Your list:\nMatching tasks:\n", session.output());
+            assertEquals("Here's what you've got:\nNothing. No matching tasks.\n", session.output());
         }
     }
 
@@ -134,9 +134,9 @@ public class UiTest {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showFindResults(tasks);
             ui.showFindResults(List.of());
-            assertEquals("Here are the matching tasks in your list:\n1.[T][X] read book\n"
+            assertEquals("Found these:\n1.[T][X] read book\n"
                     + "2.[D][ ] return book (by: Aug 19 2026)\n"
-                    + "Here are the matching tasks in your list:\n", session.output());
+                    + "Nothing. No matching tasks.\n", session.output());
         }
     }
 
@@ -149,9 +149,9 @@ public class UiTest {
             ui.showTasks(List.of(first, middle, last), false);
             ui.showTasks(List.of(last), true);
             ui.showFindResults(List.of(first, last));
-            assertEquals("Your list:\n1.[T][ ] first\n2.[T][ ] middle\n3.[T][ ] last\n"
-                    + "Matching tasks:\n1.[T][ ] last\n"
-                    + "Here are the matching tasks in your list:\n1.[T][ ] first\n2.[T][ ] last\n",
+            assertEquals("Here's what you've got:\n1.[T][ ] first\n2.[T][ ] middle\n3.[T][ ] last\n"
+                    + "Found these:\n1.[T][ ] last\n"
+                    + "Found these:\n1.[T][ ] first\n2.[T][ ] last\n",
                     session.output());
         }
     }
@@ -161,7 +161,7 @@ public class UiTest {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             Task task = new ToDo("book");
             ui.showTaskAdded(task, 12);
-            assertEquals("Got it. I've added this task:\n  [T][ ] book\n"
+            assertEquals("Alright, added it:\n  [T][ ] book\n"
                     + "Now you have 12 tasks in the list.\n", session.output());
         }
     }
@@ -170,8 +170,8 @@ public class UiTest {
     public void showDuplicateWarning_addedDuplicate_explainsAdditionAndUndo() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showDuplicateWarning();
-            assertEquals("Duplicate: this task is already in your list. I've added it anyway.\n"
-                    + "Type undo to remove this addition if it was accidental.\n", session.output());
+            assertEquals("Did you forget? This task already exists.\n"
+                    + "We can undo anyways. . .\n", session.output());
         }
     }
 
@@ -180,7 +180,7 @@ public class UiTest {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             Task task = new ToDo("book");
             ui.showTaskRemoved(task, 0);
-            assertEquals("Noted. I've removed this task:\n  [T][ ] book\n"
+            assertEquals("Gone. Hope you didn't need that:\n  [T][ ] book\n"
                     + "Now you have 0 tasks in the list.\n", session.output());
         }
     }
@@ -193,7 +193,7 @@ public class UiTest {
             ui.showMarked(task, true);
             task.markAsUndone();
             ui.showMarked(task, false);
-            assertEquals("Marked it done for you:\n  [T][X] book\n"
+            assertEquals("Fine, that's done now:\n  [T][X] book\n"
                     + "Really? Unmarked? Alright . . .\n  [T][ ] book\n", session.output());
         }
     }

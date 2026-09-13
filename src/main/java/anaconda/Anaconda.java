@@ -130,7 +130,7 @@ public class Anaconda {
     public CommandResponse getCommandResponse(String input) {
         if (parser.isExitCommand(input)) {
             redoHistory.clear();
-            return new CommandResponse("Alright, until next time.", ResponseStatus.SUCCESS);
+            return new CommandResponse("Alright, off you go. Try to get something done.", ResponseStatus.SUCCESS);
         }
 
         ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
