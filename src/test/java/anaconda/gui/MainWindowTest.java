@@ -57,6 +57,7 @@ public class MainWindowTest {
             root.applyCss();
             root.layout();
             String[] expectedStyles = {"success", "warning", "error", "success"};
+            String[] expectedStatuses = {"OK", "Check input", "Error", "OK"};
             String[] expectedColors = {"#174d35", "#ffe082", "#b3261e", "#174d35"};
             String[] expectedReplyColors = {"#d9ffe2", "#fff3c4", "#ffe4e1", "#d9ffe2"};
             assertEquals(8, dialogs.getChildren().size());
@@ -66,6 +67,7 @@ public class MainWindowTest {
                 DialogBox reply = (DialogBox) dialogs.getChildren().get(i + 1);
                 assertTrue(reply.getChildren().get(0) instanceof ImageView);
                 assertTrue(command.getStyleClass().contains(expectedStyles[i / 2]));
+                assertEquals(expectedStatuses[i / 2], ((Label) command.getChildren().get(2)).getText());
                 assertTrue(reply.getStyleClass().contains(expectedStyles[i / 2]));
                 assertEquals(Color.web(expectedColors[i / 2]), command.getBackground().getFills().get(0).getFill());
                 Label replyText = (Label) reply.getChildren().get(1);

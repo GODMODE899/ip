@@ -28,6 +28,21 @@
     -fx-text-fill: #ffffff;
 }
 
+.command-status {
+    -fx-font-family: "System";
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 1px 6px;
+    -fx-background-color: rgba(255, 255, 255, 0.16);
+    -fx-background-radius: 4px;
+    -fx-text-fill: #ffffff;
+}
+
+.warning .command-status {
+    -fx-background-color: rgba(89, 64, 0, 0.10);
+    -fx-text-fill: #594000;
+}
+
 .command-prompt {
     -fx-font-weight: bold;
     -fx-text-fill: #ffffff;

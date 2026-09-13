@@ -36,6 +36,8 @@ mixed case and slash aliases, clear confirmations/cancellations, and save-failur
 keeps the same text-only API and its existing regression tests. GUI submission tests apply the actual CSS
 and check dark green, yellow, and red command rows with matching reply backgrounds, including recovery
 from an error to a successful command.
+Command rows also show text badges (`OK`, `Check input`, `Error`) so status does not rely on color.
+GUI tests check the badges, long-command wrapping without badge overlap, and the retained 99 px avatar.
 
 The tests preserve current behavior; they do not add new date-order validation, storage escaping, or recovery
 from corrupted storage files. Corrupted-file recovery remains outside the implemented feature set.

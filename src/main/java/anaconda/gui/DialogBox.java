@@ -26,6 +26,8 @@ public class DialogBox extends HBox {
     @FXML
     private ImageView displayPicture;
 
+    private Label commandStatus;
+
     private DialogBox(String text, Image image) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(MainWindow.class.getResource("/View/DialogBox.fxml"));
@@ -69,6 +71,13 @@ public class DialogBox extends HBox {
             case ERROR -> "error";
         };
         getStyleClass().add(styleClass);
+        if (commandStatus != null) {
+            commandStatus.setText(switch (status) {
+                case SUCCESS -> "OK";
+                case WARNING -> "Check input";
+                case ERROR -> "Error";
+            });
+        }
     }
 
     /**
@@ -82,10 +91,15 @@ public class DialogBox extends HBox {
         Label prompt = new Label(">");
         prompt.getStyleClass().add("command-prompt");
         prompt.setMinWidth(USE_PREF_SIZE);
-        dialogBox.getChildren().setAll(prompt, dialogBox.dialog);
+        dialogBox.commandStatus = new Label();
+        dialogBox.commandStatus.getStyleClass().add("command-status");
+        dialogBox.commandStatus.setMinWidth(USE_PREF_SIZE);
+        dialogBox.getChildren().setAll(prompt, dialogBox.dialog, dialogBox.commandStatus);
         dialogBox.setAlignment(Pos.TOP_LEFT);
         dialogBox.getStyleClass().add("command-row");
         dialogBox.dialog.getStyleClass().add("command-label");
+        dialogBox.dialog.setMaxWidth(Double.MAX_VALUE);
+        dialogBox.setResponseStatus(ResponseStatus.SUCCESS);
         return dialogBox;
     }
 
