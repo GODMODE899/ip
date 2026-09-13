@@ -87,16 +87,6 @@ public class Parser {
     }
 
     /**
-     * Recognizes explicit approval of a pending clear operation.
-     *
-     * @param input Confirmation text.
-     * @return Whether the user entered yes.
-     */
-    public boolean isClearConfirmed(String input) {
-        return input.trim().equalsIgnoreCase("yes");
-    }
-
-    /**
      * Parses a task-creation command without adding the task to the list.
      *
      * @param command TODO, DEADLINE, or EVENT.

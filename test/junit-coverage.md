@@ -17,22 +17,22 @@ not a claim of measured 100% line or branch coverage; no coverage instrumentatio
 | --- | --- | --- |
 | `DialogBox` | `getUserDialog`, `getAnacondaDialog`, image fading | Avatar-free command prompt, empty input, long-command wrapping with CSS, multiline replies, real Anaconda image, fading only the image |
 | `MainWindow` | `initialize`, `setAnaconda`, command submission through FXML | Scroll binding, command/reply ordering, clearing the input, successful and invalid commands, goodbye image fade, temporary storage |
-| `Parser` | `parse`, `parseTask`, `parseTaskNumber`, `parseKeyword`, `parseDateFilter`, `isExitCommand`, `isClearConfirmed` | All command types, aliases, whitespace, required fields, invalid markers, both date formats, leap dates, integer boundaries/overflow, search keywords, sharp modifiers, helpful errors |
+| `Parser` | `parse`, `parseTask`, `parseTaskNumber`, `parseKeyword`, `parseDateFilter`, `isExitCommand` | All command types, aliases, whitespace, required fields, invalid markers, both date formats, leap dates, integer boundaries/overflow, search keywords, sharp modifiers, helpful errors |
 | `TaskList` | Constructors, `add`, `delete`, `mark`, `clear`, `size`, `asList`, `find`, `filterByDate` | Defensive collection copy, ordering, first/last indices, invalid indices, repeated status changes, empty lists, unmodifiable snapshots, case-insensitive description search, inclusive/exact dates, event end dates, ToDo exclusion |
 | `Storage` | `loadTasks`, `saveTasks` | Missing file/folder, empty file, independently specified input/output formats, all task types/statuses, dates, overwrite/truncate, Unicode, independent loads, file I/O failures |
 | `Task` | Constructor, getters including `getEndDate`, `markAsDone`, `markAsUndone`, `toString` | Initial state, repeated transitions, description preservation, absent end date, status markers |
 | `ToDo` | `toString` | Type marker and both completion states |
 | `Deadline` | Date getters, `toString` | Date retention, polymorphic end date, leading zero, both completion states, leap day, English month under a different locale |
 | `Event` | Date getters, `toString` | Distinct endpoints, polymorphic end date, year boundary, same-day event, both completion states, English month under a different locale |
-| `Ui` | All public methods, including `readCommand` and `close` | Exact messages, banner, list/search headers and numbering, empty lists, counts, clear prompts, input trimming, reader closure |
-| `Anaconda` | Constructor, `run`, `getResponse`, `main` | Console/GUI command dispatch, saved state after restart, invalid-command recovery, clear confirmation/cancellation, description search, date filters, load/save errors, selected task updates, no success response after failed saves, relative default path in a child JVM |
+| `Ui` | All public methods, including `readCommand` and `close` | Exact messages, banner, list/search headers and numbering, empty lists, counts, clear success message, input trimming, reader closure |
+| `Anaconda` | Constructor, `run`, `getResponse`, `main` | Console/GUI command dispatch, saved state after restart, invalid-command recovery, immediate clear and undo, description search, date filters, load/save errors, selected task updates, no success response after failed saves, relative default path in a child JVM |
 
 `Command` contains only enum constants. `AnacondaException` carries a message and reason; application tests
 exercise invalid-input, unknown-command, and storage-error reasons through response statuses. The parser's
 nested records and `Anaconda.CommandResponse` are covered through their returned values.
 
 `Anaconda.getCommandResponse` tests verify success, recognized but invalid input, unknown and blank commands,
-mixed case and slash aliases, clear confirmations/cancellations, and save-failure rollback. `getResponse`
+mixed case and slash aliases, immediate clears, and save-failure rollback. `getResponse`
 keeps the same text-only API and its existing regression tests. GUI submission tests apply the actual CSS
 and check dark green, yellow, and red command rows with matching reply backgrounds, including recovery
 from an error to a successful command.
@@ -46,11 +46,11 @@ from corrupted storage files. Corrupted-file recovery remains outside the implem
 
 ## Running the tests
 
-Undo coverage includes parser syntax, the UI confirmation, reusable task snapshots, all seven mutation
+Undo coverage includes parser syntax, the UI success message, reusable task snapshots, all seven mutation
 commands, repeated undo, restored task types/order/dates/statuses, empty history, no-op mutations,
-non-mutating and invalid commands, cancelled clears, session restart, and retry after save failures.
+non-mutating and invalid commands, malformed clears, session restart, and retry after save failures.
 `undo undo` coverage includes reversing all seven mutation types, repeated and alternating undo/redo,
-chain interruption by other commands and invalid input, new mutations, clear cancellation, empty and
+chain interruption by other commands and invalid input, new mutations, immediate clear, empty and
 exhausted history, restart, case/whitespace handling, invalid arguments, and rollback/retry after save failure.
 Both console and GUI command entry points are exercised. See [undo behavior](../docs/undo.md).
 Undo/redo responses also verify the displayed current list, including empty lists, restored task order,

@@ -179,13 +179,10 @@ public class UiTest {
     }
 
     @Test
-    public void showClearMessages_questionCancellationAndApproval_keepExistingPersonality() {
+    public void showCleared_success_keepsExistingPersonality() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
-            ui.showClearQuestion();
-            ui.showClearCancelled();
             ui.showCleared();
-            assertEquals("You sure? (yes/no)\nThat's not a yes. Kept your tasks.\n"
-                    + "Fine. Everything's gone.\n", session.output());
+            assertEquals("Fine. Everything's gone.\n", session.output());
         }
     }
 

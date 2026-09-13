@@ -50,7 +50,7 @@ public class MainWindowTest {
             VBox dialogs = (VBox) scrollPane.getContent();
             assertTrue(scrollPane.vvalueProperty().isBound());
 
-            for (String command : new String[] {"todo read book", "todo", "nonsense", "bye"}) {
+            for (String command : new String[] {"todo read book", "todo", "nonsense", "clear", "undo", "bye"}) {
                 input.setText(command);
                 if (command.equals("todo read book")) {
                     input.fireEvent(new ActionEvent());
@@ -62,11 +62,11 @@ public class MainWindowTest {
 
             root.applyCss();
             root.layout();
-            String[] expectedStyles = {"success", "warning", "error", "success"};
-            String[] expectedStatuses = {"OK", "Check input", "Error", "OK"};
-            String[] expectedColors = {"#174d35", "#ffe082", "#b3261e", "#174d35"};
-            String[] expectedReplyColors = {"#d9ffe2", "#fff3c4", "#ffe4e1", "#d9ffe2"};
-            assertEquals(8, dialogs.getChildren().size());
+            String[] expectedStyles = {"success", "warning", "error", "success", "success", "success"};
+            String[] expectedStatuses = {"OK", "Check input", "Error", "OK", "OK", "OK"};
+            String[] expectedColors = {"#174d35", "#ffe082", "#b3261e", "#174d35", "#174d35", "#174d35"};
+            String[] expectedReplyColors = {"#d9ffe2", "#fff3c4", "#ffe4e1", "#d9ffe2", "#d9ffe2", "#d9ffe2"};
+            assertEquals(12, dialogs.getChildren().size());
             for (int i = 0; i < dialogs.getChildren().size(); i += 2) {
                 DialogBox command = (DialogBox) dialogs.getChildren().get(i);
                 assertFalse(command.getChildren().stream().anyMatch(ImageView.class::isInstance));
@@ -86,7 +86,11 @@ public class MainWindowTest {
             assertTrue(((Label) warning.getChildren().get(1)).getText().contains("cannot be empty"));
             DialogBox error = (DialogBox) dialogs.getChildren().get(5);
             assertTrue(((Label) error.getChildren().get(1)).getText().contains("Oops!"));
-            DialogBox goodbye = (DialogBox) dialogs.getChildren().get(7);
+            DialogBox cleared = (DialogBox) dialogs.getChildren().get(7);
+            assertEquals("Fine. Everything's gone.", ((Label) cleared.getChildren().get(1)).getText());
+            DialogBox restored = (DialogBox) dialogs.getChildren().get(9);
+            assertTrue(((Label) restored.getChildren().get(1)).getText().contains("1.[T][ ] read book"));
+            DialogBox goodbye = (DialogBox) dialogs.getChildren().get(11);
             assertEquals(0.5, goodbye.getChildren().get(0).getOpacity());
             return null;
         });

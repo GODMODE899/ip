@@ -21,4 +21,4 @@ test/ui-test-session.txt
 text-ui-test/EXPECTED-UNIX.TXT
 
 # Storage
-data/anaconda.txt
+/data/anaconda.txt

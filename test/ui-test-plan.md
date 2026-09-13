@@ -495,11 +495,11 @@ Alright, until next time.
 ____________________________________________________________
 ```
 
-## Test case: TC07 - Confirm clearing the task list
+## Test case: TC07 - Immediately clear the task list
 
 ### Aim
 
-Verify that the clear command asks for confirmation, removes every task only after a yes response, and saves the empty list.
+Verify that clear immediately removes every task and saves the empty list, then list runs normally.
 
 ### Inputs
 
@@ -507,7 +507,6 @@ Verify that the clear command asks for confirmation, removes every task only aft
 todo borrow book
 deadline return book /by 2019-10-15
 clear
-yes
 list
 bye
 ```
@@ -535,9 +534,6 @@ Got it. I've added this task:
 Now you have 2 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-You sure? (yes/no)
-____________________________________________________________
-____________________________________________________________
 Fine. Everything's gone.
 ____________________________________________________________
 ____________________________________________________________
@@ -554,18 +550,18 @@ ____________________________________________________________
 
 ```
 
-## Test case: TC08 - Cancel clearing the task list
+## Test case: TC08 - Undo clearing the task list
 
 ### Aim
 
-Verify that any response other than yes cancels the clear command and leaves the saved task list unchanged.
+Verify that undo immediately restores and saves the tasks removed by clear.
 
 ### Inputs
 
 ```text
 todo borrow book
 clear
-no
+undo
 list
 bye
 ```
@@ -588,10 +584,12 @@ Got it. I've added this task:
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-You sure? (yes/no)
+Fine. Everything's gone.
 ____________________________________________________________
 ____________________________________________________________
-That's not a yes. Kept your tasks.
+Undid the previous command.
+Your list:
+1.[T][ ] borrow book
 ____________________________________________________________
 ____________________________________________________________
 Your list:

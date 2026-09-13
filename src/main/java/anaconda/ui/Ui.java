@@ -56,7 +56,7 @@ public class Ui implements AutoCloseable {
     /**
      * Reads and trims the next line entered by the user.
      *
-     * @return Complete command or confirmation text.
+     * @return Complete command text.
      */
     public String readCommand() {
         return scanner.nextLine().trim();
@@ -151,20 +151,6 @@ public class Ui implements AutoCloseable {
         showToUser(
                 isDone ? "Marked it done for you:" : "Really? Unmarked? Alright . . .",
                 "  " + task);
-    }
-
-    /**
-     * Asks the user to confirm clearing the list.
-     */
-    public void showClearQuestion() {
-        showToUser("You sure? (yes/no)");
-    }
-
-    /**
-     * Reports that clearing the list was cancelled.
-     */
-    public void showClearCancelled() {
-        showToUser("That's not a yes. Kept your tasks.");
     }
 
     /**

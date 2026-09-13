@@ -51,7 +51,6 @@ public class Anaconda {
      * States reversed by undo, most recent first; another command ends the current undo chain.
      */
     private final Deque<TaskList.Snapshot> redoHistory = new ArrayDeque<>();
-    private boolean isAwaitingGuiClearConfirmation;
 
     /**
      * Creates the chatbot using the default relative data path.
@@ -82,26 +81,20 @@ public class Anaconda {
     }
 
     /**
-     * Accepts commands and clear confirmations until the user enters bye.
+     * Accepts commands until the user enters bye.
      */
     public void run() {
         ui.showWelcome();
-        boolean isAwaitingClearConfirmation = false;
         while (true) {
             String input = ui.readCommand();
-            if (!isAwaitingClearConfirmation && parser.isExitCommand(input)) {
+            if (parser.isExitCommand(input)) {
                 redoHistory.clear();
                 break;
             }
 
             ui.showLine();
             try {
-                if (isAwaitingClearConfirmation) {
-                    isAwaitingClearConfirmation = false;
-                    clearTasksIfConfirmed(input, ui);
-                } else {
-                    isAwaitingClearConfirmation = handleCommand(input, ui);
-                }
+                handleCommand(input, ui);
             } catch (AnacondaException exception) {
                 ui.showError(exception.getMessage());
             }
@@ -124,13 +117,13 @@ public class Anaconda {
     }
 
     /**
-     * Processes input once and returns its text and status, including pending clear confirmations.
+     * Processes input once and returns its text and status.
      *
      * @param input Complete user input.
      * @return Response whose status reflects validation and command execution.
      */
     public CommandResponse getCommandResponse(String input) {
-        if (!isAwaitingGuiClearConfirmation && parser.isExitCommand(input)) {
+        if (parser.isExitCommand(input)) {
             redoHistory.clear();
             return new CommandResponse("Alright, until next time.", ResponseStatus.SUCCESS);
         }
@@ -145,16 +138,11 @@ public class Anaconda {
     }
 
     /**
-     * Processes a GUI command or a pending clear confirmation using the existing command handlers.
+     * Processes a GUI command using the existing command handlers.
      */
     private ResponseStatus processGuiInput(String input, Ui responseUi) {
         try {
-            if (isAwaitingGuiClearConfirmation) {
-                isAwaitingGuiClearConfirmation = false;
-                clearTasksIfConfirmed(input, responseUi);
-            } else {
-                isAwaitingGuiClearConfirmation = handleCommand(input, responseUi);
-            }
+            handleCommand(input, responseUi);
             return ResponseStatus.SUCCESS;
         } catch (AnacondaException exception) {
             responseUi.showError(exception.getMessage());
@@ -170,10 +158,9 @@ public class Anaconda {
      *
      * @param input Complete user input.
      * @param responseUi Destination for this command's messages.
-     * @return Whether the next input must confirm a clear operation.
      * @throws AnacondaException If the command is invalid or saving fails.
      */
-    private boolean handleCommand(String input, Ui responseUi) throws AnacondaException {
+    private void handleCommand(String input, Ui responseUi) throws AnacondaException {
         Parser.ParsedCommand parsedCommand = parseAndUpdateUndoChain(input);
         Command command = parsedCommand.command();
         String arguments = parsedCommand.arguments();
@@ -189,10 +176,7 @@ public class Anaconda {
                     redoTaskChange(responseUi);
                 }
             }
-            case CLEAR -> {
-                responseUi.showClearQuestion();
-                return true;
-            }
+            case CLEAR -> clearTasks(responseUi);
             case FIND -> findTasks(arguments, responseUi);
             case TODO, DEADLINE, EVENT -> addTask(command, arguments, responseUi);
             case BY, FROM -> filterTasksByDate(command, arguments, responseUi);
@@ -201,7 +185,6 @@ public class Anaconda {
             }
             default -> throw new IllegalStateException("Unsupported command: " + command);
         }
-        return false;
     }
 
     /**
@@ -269,13 +252,9 @@ public class Anaconda {
     }
 
     /**
-     * Clears and saves tasks only after explicit approval.
+     * Clears and saves tasks immediately, retaining a snapshot for undo or save-failure rollback.
      */
-    private void clearTasksIfConfirmed(String confirmation, Ui responseUi) throws AnacondaException {
-        if (!parser.isClearConfirmed(confirmation)) {
-            responseUi.showClearCancelled();
-            return;
-        }
+    private void clearTasks(Ui responseUi) throws AnacondaException {
         TaskList.Snapshot previousState = tasks.snapshot();
         tasks.clear();
         saveChange(previousState);

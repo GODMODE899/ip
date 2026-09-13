@@ -86,15 +86,6 @@ public class ParserTest {
     }
 
     @Test
-    public void isClearConfirmed_onlyExplicitYes_returnsTrue() {
-        assertTrue(parser.isClearConfirmed("yes"));
-        assertTrue(parser.isClearConfirmed(" YES "));
-        for (String input : new String[] {"", "y", "no", "yes please", "bye"}) {
-            assertFalse(parser.isClearConfirmed(input), input);
-        }
-    }
-
-    @Test
     public void parseTask_todo_preservesDescriptionAndStartsIncomplete() throws AnacondaException {
         ToDo task = assertInstanceOf(ToDo.class, parser.parseTask(Command.TODO, "Read  Book"));
         assertEquals("Read  Book", task.getDescription());
