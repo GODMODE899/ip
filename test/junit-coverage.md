@@ -68,6 +68,10 @@ Unknown or blank input includes a compact list of all commands in the red respon
 including `undo undo` for redo. GUI, console, and exact UI-output tests cover this command list.
 Storage errors retain their focused error message without unrelated command suggestions.
 
+The `help` command displays the same command list with success status, including itself. Tests cover
+case and surrounding whitespace, rejection of extra arguments, console output, unchanged storage,
+and preservation of undo history.
+
 ## Running the tests
 
 Undo coverage includes parser syntax, the UI success message, reusable task snapshots, all seven mutation

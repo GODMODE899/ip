@@ -239,6 +239,30 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getCommandResponse_help_listsCommandsWithoutSavingOrAddingUndoHistory() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        Anaconda.CommandResponse help = anaconda.getCommandResponse("  HeLp  ");
+        assertEquals(Anaconda.ResponseStatus.SUCCESS, help.status());
+        assertTrue(help.text().startsWith("Available commands:"));
+        assertTrue(help.text().contains("Help: help"));
+        assertFalse(Files.exists(file));
+        anaconda.getResponse("todo book");
+        String saved = Files.readString(file);
+        assertEquals(help, anaconda.getCommandResponse("help"));
+        assertEquals(saved, Files.readString(file));
+        Anaconda.CommandResponse invalid = anaconda.getCommandResponse("help extra");
+        assertEquals(Anaconda.ResponseStatus.WARNING, invalid.status());
+        assertEquals("Oops! The help command does not take extra text.", invalid.text());
+        anaconda.getResponse("undo");
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        String console = runSession(file, "help\nbye\n");
+        assertTrue(console.contains(help.text().replace("\r\n", "\n")));
+        assertFalse(console.contains("Oops!"));
+    }
+
+    @Test
     public void getCommandResponse_unknownOrBlankInput_returnsError() {
         Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
         for (String input : List.of("blah", "todoo read book", "/todo read book", "yes", "", "   ", "???")) {
@@ -258,7 +282,7 @@ public class AnacondaTest {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "nonsense\ntodo book\nbye\n");
         assertTrue(output.contains("Oops! I don't recognize that command.\nAvailable commands:\n"));
-        assertTrue(output.contains("History: undo, undo undo (redo)\nExit: bye\n"));
+        assertTrue(output.contains("History: undo, undo undo (redo)\nHelp: help\nExit: bye\n"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 

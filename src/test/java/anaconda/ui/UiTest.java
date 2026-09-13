@@ -87,7 +87,7 @@ public class UiTest {
             ui.showCommandList();
             assertEquals("Available commands:\nAdd: todo, deadline, event\n"
                     + "View/search: list, find, /by, /from\nUpdate: mark, unmark, delete, clear\n"
-                    + "History: undo, undo undo (redo)\nExit: bye\n", session.output());
+                    + "History: undo, undo undo (redo)\nHelp: help\nExit: bye\n", session.output());
         }
     }
 

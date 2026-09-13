@@ -220,6 +220,7 @@ public class Anaconda {
 
         switch (command) {
             case LIST -> responseUi.showTasks(tasks.asList(), false);
+            case HELP -> responseUi.showCommandList();
             case MARK, UNMARK -> changeTaskStatus(arguments, command == Command.MARK, responseUi);
             case DELETE -> deleteTask(arguments, responseUi);
             case UNDO -> {

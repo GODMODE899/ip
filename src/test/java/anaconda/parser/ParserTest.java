@@ -52,8 +52,8 @@ public class ParserTest {
     }
 
     @Test
-    public void parse_unexpectedArguments_rejectsListClearAndBye() {
-        for (String command : new String[] {"list", "clear"}) {
+    public void parse_unexpectedArguments_rejectsListHelpClearAndBye() {
+        for (String command : new String[] {"list", "help", "clear"}) {
             assertEquals("The " + command + " command does not take extra text.",
                     assertThrows(AnacondaException.class, () ->
                             parser.parse(command + " extra")).getMessage());

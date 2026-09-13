@@ -87,6 +87,7 @@ public class Ui implements AutoCloseable {
                 "View/search: list, find, /by, /from",
                 "Update: mark, unmark, delete, clear",
                 "History: undo, undo undo (redo)",
+                "Help: help",
                 "Exit: bye");
     }
 

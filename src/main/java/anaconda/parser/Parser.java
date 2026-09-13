@@ -38,7 +38,7 @@ public class Parser {
     }
 
     /**
-     * Splits a command and validates argument restrictions for list, clear, undo, and bye.
+     * Splits a command and validates argument restrictions for list, help, clear, undo, and bye.
      *
      * @param input Complete user input.
      * @return Recognized command and its argument text.
@@ -54,6 +54,9 @@ public class Parser {
         Command command = parseCommand(inputParts[0]);
         String arguments = inputParts.length == 2 ? inputParts[1].trim() : "";
         switch (command) {
+            case HELP:
+                requireNoArguments(arguments, "help");
+                break;
             case LIST:
                 requireNoArguments(arguments, "list");
                 break;
