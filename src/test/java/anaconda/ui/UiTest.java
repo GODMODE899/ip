@@ -156,6 +156,15 @@ public class UiTest {
     }
 
     @Test
+    public void showDuplicateWarning_addedDuplicate_explainsAdditionAndUndo() {
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            ui.showDuplicateWarning();
+            assertEquals("Duplicate: this task is already in your list. I've added it anyway.\n"
+                    + "Type undo to remove this addition if it was accidental.\n", session.output());
+        }
+    }
+
+    @Test
     public void showTaskRemoved_taskAndSuppliedCount_printsThreeLines() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             Task task = new ToDo("book");

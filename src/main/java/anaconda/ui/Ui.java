@@ -129,6 +129,14 @@ public class Ui implements AutoCloseable {
     }
 
     /**
+     * Warns that the newly added task duplicates an existing task and explains how to undo it.
+     */
+    public void showDuplicateWarning() {
+        showToUser("Duplicate: this task is already in your list. I've added it anyway.",
+                "Type undo to remove this addition if it was accidental.");
+    }
+
+    /**
      * Displays a removed task and the updated task count.
      *
      * @param task Task that was removed.

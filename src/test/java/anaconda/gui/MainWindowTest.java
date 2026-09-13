@@ -97,6 +97,42 @@ public class MainWindowTest {
     }
 
     @Test
+    public void setAnaconda_duplicateAddition_rendersPurpleBadgeAndReplyThenAllowsUndo() throws Exception {
+        JavaFxTestSupport.runOnFxThread(() -> {
+            FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("/View/MainWindow.fxml"));
+            AnchorPane root = loader.load();
+            loader.<MainWindow>getController().setAnaconda(new Anaconda(temporaryDirectory.resolve("tasks.txt")));
+            new Scene(root, 400, 600);
+            TextField input = (TextField) root.lookup("#userInput");
+            Button send = (Button) root.lookup("#sendButton");
+            VBox dialogs = (VBox) ((ScrollPane) root.lookup("#scrollPane")).getContent();
+            for (String command : new String[] {"todo book", "todo book", "undo"}) {
+                input.setText(command);
+                send.fire();
+            }
+            root.applyCss();
+            root.layout();
+            DialogBox duplicate = (DialogBox) dialogs.getChildren().get(2);
+            assertTrue(duplicate.getStyleClass().contains("duplicate"));
+            assertFalse(duplicate.getStyleClass().contains("success"));
+            assertEquals("Duplicate", ((Label) duplicate.getChildren().get(2)).getText());
+            assertEquals(Color.web("#6f42a6"), duplicate.getBackground().getFills().getFirst().getFill());
+            DialogBox reply = (DialogBox) dialogs.getChildren().get(3);
+            Label replyText = (Label) reply.getChildren().get(1);
+            assertEquals(Color.web("#f1e7fb"), replyText.getBackground().getFills().getFirst().getFill());
+            assertTrue(replyText.getText().contains("Duplicate:"));
+            assertTrue(replyText.getText().contains("Type undo"));
+            DialogBox undo = (DialogBox) dialogs.getChildren().get(4);
+            assertEquals("OK", ((Label) undo.getChildren().get(2)).getText());
+            assertEquals(Color.web("#174d35"), undo.getBackground().getFills().getFirst().getFill());
+            Label undoText = (Label) ((DialogBox) dialogs.getChildren().get(5)).getChildren().get(1);
+            assertTrue(undoText.getText().contains("1.[T][ ] book"));
+            assertFalse(undoText.getText().contains("2.[T]"));
+            return null;
+        });
+    }
+
+    @Test
     public void initialize_resizeWindow_keepsInputBarAlignedAndSeparateFromConversation() throws Exception {
         JavaFxTestSupport.runOnFxThread(() -> {
             FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("/View/MainWindow.fxml"));

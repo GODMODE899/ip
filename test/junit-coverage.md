@@ -51,6 +51,12 @@ Regression cases include February 30 in leap and non-leap years, February 29 in 
 2100), and valid leap days in 2000 and 2024, in both accepted formats. Invalid inputs produce a yellow
 warning with calendar-date guidance and preserve saved tasks and undo history.
 
+Duplicate additions are saved and remain undoable. `TaskList.hasDuplicate` compares type, description
+(ignoring case), and all dates, regardless of completion status. Tests cover all three task types,
+different descriptions/types/dates, empty and cleared lists, completed and loaded tasks, equivalent
+date formats, console warnings, undo/redo, and save-failure rollback without a misleading notice.
+GUI tests verify purple command rows, a `Duplicate` badge, matching pale lavender replies, and undo recovery.
+
 ## Running the tests
 
 Undo coverage includes parser syntax, the UI success message, reusable task snapshots, all seven mutation

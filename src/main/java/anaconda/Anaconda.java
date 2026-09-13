@@ -24,10 +24,10 @@ public class Anaconda {
     private static final Path DATA_FILE = Path.of("data", "anaconda.txt");
 
     /**
-     * Describes successful input, a recognized command needing correction, or an error.
+     * Describes successful input, an added duplicate, invalid input, or an execution error.
      */
     public enum ResponseStatus {
-        SUCCESS, WARNING, ERROR
+        SUCCESS, DUPLICATE, WARNING, ERROR
     }
 
     /**
@@ -142,8 +142,7 @@ public class Anaconda {
      */
     private ResponseStatus processGuiInput(String input, Ui responseUi) {
         try {
-            handleCommand(input, responseUi);
-            return ResponseStatus.SUCCESS;
+            return handleCommand(input, responseUi);
         } catch (AnacondaException exception) {
             responseUi.showError(exception.getMessage());
             return switch (exception.getReason()) {
@@ -158,9 +157,10 @@ public class Anaconda {
      *
      * @param input Complete user input.
      * @param responseUi Destination for this command's messages.
+     * @return Outcome of the saved change or completed command.
      * @throws AnacondaException If the command is invalid or saving fails.
      */
-    private void handleCommand(String input, Ui responseUi) throws AnacondaException {
+    private ResponseStatus handleCommand(String input, Ui responseUi) throws AnacondaException {
         Parser.ParsedCommand parsedCommand = parseAndUpdateUndoChain(input);
         Command command = parsedCommand.command();
         String arguments = parsedCommand.arguments();
@@ -178,13 +178,16 @@ public class Anaconda {
             }
             case CLEAR -> clearTasks(responseUi);
             case FIND -> findTasks(arguments, responseUi);
-            case TODO, DEADLINE, EVENT -> addTask(command, arguments, responseUi);
+            case TODO, DEADLINE, EVENT -> {
+                return addTask(command, arguments, responseUi);
+            }
             case BY, FROM -> filterTasksByDate(command, arguments, responseUi);
             case BYE -> {
                 // Console and GUI entry points handle standalone bye commands before dispatch.
             }
             default -> throw new IllegalStateException("Unsupported command: " + command);
         }
+        return ResponseStatus.SUCCESS;
     }
 
     /**
@@ -225,14 +228,20 @@ public class Anaconda {
     }
 
     /**
-     * Creates a task and reports success only after saving.
+     * Creates and saves a task, then warns about duplicates while retaining the addition for undo.
      */
-    private void addTask(Command command, String arguments, Ui responseUi) throws AnacondaException {
+    private ResponseStatus addTask(Command command, String arguments, Ui responseUi) throws AnacondaException {
         Task task = parser.parseTask(command, arguments);
+        boolean isDuplicate = tasks.hasDuplicate(task);
         TaskList.Snapshot previousState = tasks.snapshot();
         tasks.add(task);
         saveChange(previousState);
         responseUi.showTaskAdded(task, tasks.size());
+        if (isDuplicate) {
+            responseUi.showDuplicateWarning();
+            return ResponseStatus.DUPLICATE;
+        }
+        return ResponseStatus.SUCCESS;
     }
 
     /**

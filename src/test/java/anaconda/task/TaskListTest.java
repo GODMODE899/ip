@@ -44,6 +44,42 @@ public class TaskListTest {
     }
 
     @Test
+    public void hasDuplicate_matchingTasks_ignoresCaseAndCompletionWithoutChangingList() {
+        LocalDate date = LocalDate.of(2026, 9, 13);
+        List<Task> originals = List.of(new ToDo("Read book"), new Deadline("Report", date),
+                new Event("Meeting", date, date.plusDays(1)));
+        List<Task> candidates = List.of(new ToDo("read BOOK"), new Deadline("REPORT", date),
+                new Event("meeting", date, date.plusDays(1)));
+        TaskList tasks = new TaskList(originals);
+        for (int i = 0; i < originals.size(); i++) {
+            assertTrue(tasks.hasDuplicate(candidates.get(i)));
+            originals.get(i).markAsDone();
+            assertTrue(tasks.hasDuplicate(candidates.get(i)));
+        }
+        assertEquals(originals, tasks.asList());
+        assertTrue(originals.stream().allMatch(Task::isDone));
+        assertTrue(candidates.stream().noneMatch(Task::isDone));
+    }
+
+    @Test
+    public void hasDuplicate_differentDetailsOrEmptyList_returnsFalse() {
+        LocalDate date = LocalDate.of(2026, 9, 13);
+        assertFalse(new TaskList().hasDuplicate(new ToDo("book")));
+        TaskList todos = new TaskList(List.of(new ToDo("book")));
+        assertFalse(todos.hasDuplicate(new ToDo("books")));
+        assertFalse(todos.hasDuplicate(new Deadline("book", date)));
+        assertFalse(todos.hasDuplicate(new Event("book", date, date)));
+        TaskList deadlines = new TaskList(List.of(new Deadline("book", date)));
+        assertFalse(deadlines.hasDuplicate(new Deadline("book", date.plusDays(1))));
+        assertFalse(deadlines.hasDuplicate(new Event("book", date, date)));
+        TaskList events = new TaskList(List.of(new Event("book", date, date.plusDays(2))));
+        assertFalse(events.hasDuplicate(new Event("book", date.plusDays(1), date.plusDays(2))));
+        assertFalse(events.hasDuplicate(new Event("book", date, date.plusDays(3))));
+        todos.clear();
+        assertFalse(todos.hasDuplicate(new ToDo("book")));
+    }
+
+    @Test
     public void delete_firstMiddleAndLastTask_returnsRemovedTaskAndRenumbers() throws AnacondaException {
         for (int number : new int[] {1, 2, 3}) {
             ArrayList<Task> expectedTasks =

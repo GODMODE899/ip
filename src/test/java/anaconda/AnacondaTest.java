@@ -43,6 +43,64 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getCommandResponse_duplicateTasks_savesOnceAndSupportsUndoAndRedo() throws IOException {
+        String[][] commands = {
+            {"todo Read book", "todo read BOOK"},
+            {"deadline report /by 2026-09-13", "deadline REPORT /by 13-09-2026"},
+            {"event meeting /from 2026-09-13 /to 2026-09-14",
+                "event MEETING /from 13-09-2026 /to 14-09-2026"}
+        };
+        for (int i = 0; i < commands.length; i++) {
+            Path file = temporaryDirectory.resolve("duplicates-" + i + ".txt");
+            Anaconda anaconda = new Anaconda(file);
+            assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse(commands[i][0]).status());
+            anaconda.getResponse("mark 1");
+            List<String> original = Files.readAllLines(file);
+            anaconda = new Anaconda(file);
+            Anaconda.CommandResponse response = anaconda.getCommandResponse(commands[i][1]);
+            assertEquals(Anaconda.ResponseStatus.DUPLICATE, response.status());
+            assertTrue(response.text().contains("Now you have 2 tasks in the list."));
+            assertTrue(response.text().contains("Duplicate: this task is already in your list. I've added it anyway."));
+            assertTrue(response.text().contains("Type undo to remove this addition if it was accidental."));
+            List<String> duplicated = Files.readAllLines(file);
+            assertEquals(2, duplicated.size());
+            assertEquals(original.getFirst(), duplicated.getFirst());
+            assertTrue(duplicated.getLast().contains(" | 0 | "));
+            assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("undo").status());
+            assertEquals(original, Files.readAllLines(file));
+            assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("undo undo").status());
+            assertEquals(duplicated, Files.readAllLines(file));
+        }
+    }
+
+    @Test
+    public void getCommandResponse_duplicateSaveFailure_reportsOnlyErrorAndPreservesHistory() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        Files.delete(file);
+        Files.createDirectory(file);
+        Anaconda.CommandResponse response = anaconda.getCommandResponse("todo book");
+        assertEquals(Anaconda.ResponseStatus.ERROR, response.status());
+        assertEquals("Oops! I couldn't save your task list.", response.text());
+        assertEquals("Your list:" + System.lineSeparator() + "1.[T][ ] book", anaconda.getResponse("list"));
+        Files.delete(file);
+        anaconda.getResponse("undo");
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void run_duplicateTask_warnsAndLeavesRemovalToUser() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file, "todo book\ntodo book\nlist\nundo\nbye\n");
+        assertTrue(output.contains("Duplicate: this task is already in your list. I've added it anyway."));
+        assertTrue(output.contains("Type undo to remove this addition if it was accidental."));
+        assertTrue(output.contains("Your list:\n1.[T][ ] book\n2.[T][ ] book\n"));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
+    }
+
+    @Test
     public void getCommandResponse_recognizedInvalidCommands_returnsWarning() {
         Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
         for (String input : List.of("todo", "deadline essay", "event meeting /from 2026-09-13",

@@ -64,9 +64,10 @@ public class DialogBox extends HBox {
      * Applies the command outcome to this row and its text using the shared status palette.
      */
     void setResponseStatus(ResponseStatus status) {
-        getStyleClass().removeAll("success", "warning", "error");
+        getStyleClass().removeAll("success", "duplicate", "warning", "error");
         String styleClass = switch (status) {
             case SUCCESS -> "success";
+            case DUPLICATE -> "duplicate";
             case WARNING -> "warning";
             case ERROR -> "error";
         };
@@ -74,6 +75,7 @@ public class DialogBox extends HBox {
         if (commandStatus != null) {
             commandStatus.setText(switch (status) {
                 case SUCCESS -> "OK";
+                case DUPLICATE -> "Duplicate";
                 case WARNING -> "Check input";
                 case ERROR -> "Error";
             });
