@@ -41,8 +41,11 @@ GUI tests check the badges, long-command wrapping without badge overlap, and the
 Input-bar checks cover the command placeholder, aligned controls, readable fonts, Enter and Send submission,
 and separation from the conversation when the window is resized, including a short window.
 
-The tests preserve current behavior; they do not add new date-order validation, storage escaping, or recovery
-from corrupted storage files. Corrupted-file recovery remains outside the implemented feature set.
+Event commands reject start dates later than end dates before changing tasks or storage. Tests cover both
+date formats, equal dates, leap-day and year boundaries, yellow GUI warning status, console recovery,
+and preservation of saved tasks and undo history after invalid input. Validation applies to new commands;
+loading existing saved events is unchanged. Storage escaping and corrupted-file recovery remain outside
+the implemented feature set.
 
 ## Running the tests
 

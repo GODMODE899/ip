@@ -55,6 +55,37 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getCommandResponse_reversedEvent_warnsWithoutSavingOrAddingUndoStep() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        String command = "event meeting /from 2026-09-14 /to 2026-09-13";
+        Anaconda.CommandResponse response = anaconda.getCommandResponse(command);
+        assertEquals(Anaconda.ResponseStatus.WARNING, response.status());
+        assertEquals("Oops! An event's start date cannot be later than its end date.", response.text());
+        assertFalse(Files.exists(file));
+
+        anaconda.getResponse("todo book");
+        String saved = Files.readString(file);
+        assertEquals(response, anaconda.getCommandResponse(command));
+        assertEquals(saved, Files.readString(file));
+        assertFalse(anaconda.getResponse("list").contains("meeting"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."));
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void run_reversedEvent_reportsErrorAndAcceptsCorrectedEvent() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file, "event meeting /from 2026-09-14 /to 2026-09-13\n"
+                + "event meeting /from 2026-09-13 /to 2026-09-13\nlist\nbye\n");
+        assertTrue(output.contains("Oops! An event's start date cannot be later than its end date."));
+        assertFalse(output.contains("Now you have 2 tasks"));
+        assertTrue(output.contains("Your list:\n1.[E][ ] meeting (from: Sep 13 2026 to: Sep 13 2026)"));
+        assertEquals(List.of("E | 0 | meeting | 2026-09-13 | 2026-09-13"), Files.readAllLines(file));
+    }
+
+    @Test
     public void getCommandResponse_unknownOrBlankInput_returnsError() {
         Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
         for (String input : List.of("blah", "todoo read book", "/todo read book", "yes", "", "   ", "???")) {

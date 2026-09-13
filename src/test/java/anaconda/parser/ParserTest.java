@@ -114,6 +114,37 @@ public class ParserTest {
     }
 
     @Test
+    public void parseTask_eventStartAfterEnd_throwsHelpfulException() {
+        String[] reversedRanges = {
+            "2026-09-14 /to 2026-09-13",
+            "14-09-2026 /to 13-09-2026",
+            "2026-01-01 /to 31-12-2025",
+            "01-03-2024 /to 2024-02-29"
+        };
+        for (String range : reversedRanges) {
+            AnacondaException exception = assertThrows(AnacondaException.class, () ->
+                    parser.parseTask(Command.EVENT, "meeting /from " + range));
+            assertEquals("An event's start date cannot be later than its end date.", exception.getMessage());
+            assertEquals(AnacondaException.Reason.INVALID_INPUT, exception.getReason());
+        }
+    }
+
+    @Test
+    public void parseTask_eventEqualOrIncreasingDates_acceptsRange() throws AnacondaException {
+        String[] validRanges = {
+            "2024-02-29 /to 29-02-2024",
+            "29-02-2024 /to 2024-02-29",
+            "29-02-2024 /to 2024-03-01",
+            "2025-12-31 /to 01-01-2026"
+        };
+        for (String range : validRanges) {
+            Event task = assertInstanceOf(Event.class,
+                    parser.parseTask(Command.EVENT, "meeting /from " + range));
+            assertFalse(task.getFrom().isAfter(task.getTo()), range);
+        }
+    }
+
+    @Test
     public void parseTask_eventDescriptionContainsToMarker_usesToMarkerAfterFrom() throws AnacondaException {
         Event task = assertInstanceOf(Event.class,
                 parser.parseTask(Command.EVENT, "explain /to syntax /from 2026-08-18 /to 2026-08-19"));

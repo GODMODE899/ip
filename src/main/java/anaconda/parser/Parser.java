@@ -198,7 +198,7 @@ public class Parser {
     }
 
     /**
-     * Parses the description and date fields of an event.
+     * Parses an event's description and dates, allowing equal dates but rejecting a reversed range.
      */
     private Event parseEvent(String arguments) throws AnacondaException {
         int fromPosition = arguments.indexOf("/from");
@@ -221,6 +221,9 @@ public class Parser {
         }
         LocalDate from = parseDate(fromText);
         LocalDate to = parseDate(toText);
+        if (from.isAfter(to)) {
+            throw new AnacondaException("An event's start date cannot be later than its end date.");
+        }
         return new Event(description, from, to);
     }
 
