@@ -1,6 +1,7 @@
 package anaconda.gui;
 
 import anaconda.Anaconda;
+import anaconda.ui.Ui;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -43,6 +44,11 @@ public class MainWindow extends AnchorPane {
      */
     public void setAnaconda(Anaconda anaconda) {
         this.anaconda = anaconda;
+        if (anaconda.hasLoadingError()) {
+            DialogBox warning = DialogBox.getAnacondaDialog(Ui.LOADING_ERROR_MESSAGE, anacondaImage);
+            warning.setResponseStatus(Anaconda.ResponseStatus.ERROR);
+            dialogContainer.getChildren().add(warning);
+        }
     }
 
     /**

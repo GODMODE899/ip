@@ -38,7 +38,7 @@ public class Parser {
     }
 
     /**
-     * Splits a command and validates argument restrictions for list, clear, undo, and bye.
+     * Splits a command and validates argument restrictions for list, help, clear, undo, and bye.
      *
      * @param input Complete user input.
      * @return Recognized command and its argument text.
@@ -54,6 +54,9 @@ public class Parser {
         Command command = parseCommand(inputParts[0]);
         String arguments = inputParts.length == 2 ? inputParts[1].trim() : "";
         switch (command) {
+            case HELP:
+                requireNoArguments(arguments, "help");
+                break;
             case LIST:
                 requireNoArguments(arguments, "list");
                 break;
@@ -198,7 +201,7 @@ public class Parser {
     }
 
     /**
-     * Parses the description and date fields of an event.
+     * Parses an event's description and dates, allowing equal dates but rejecting a reversed range.
      */
     private Event parseEvent(String arguments) throws AnacondaException {
         int fromPosition = arguments.indexOf("/from");
@@ -221,6 +224,9 @@ public class Parser {
         }
         LocalDate from = parseDate(fromText);
         LocalDate to = parseDate(toText);
+        if (from.isAfter(to)) {
+            throw new AnacondaException("An event's start date cannot be later than its end date.");
+        }
         return new Event(description, from, to);
     }
 
@@ -234,7 +240,7 @@ public class Parser {
             try {
                 return LocalDate.parse(dateText, DAY_FIRST_DATE_FORMATTER);
             } catch (DateTimeParseException secondException) {
-                throw new AnacondaException("Dates must use yyyy-MM-dd or dd-MM-yyyy.");
+                throw new AnacondaException("Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.");
             }
         }
     }

@@ -5,6 +5,7 @@ package anaconda.parser;
  */
 public enum Command {
     LIST,
+    HELP,
     MARK,
     UNMARK,
     DELETE,

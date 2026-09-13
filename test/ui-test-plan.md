@@ -279,7 +279,7 @@ Got it. I've added this task:
 Now you have 1 tasks in the list.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Dates must use yyyy-MM-dd or dd-MM-yyyy.
+Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.
 ____________________________________________________________
 ____________________________________________________________
 Oops! An event needs both '/from' and '/to' times.
@@ -488,7 +488,7 @@ ____________________________________________________________
 Oops! Use '/by DATE' or '/by DATE sharp'.
 ____________________________________________________________
 ____________________________________________________________
-Oops! Dates must use yyyy-MM-dd or dd-MM-yyyy.
+Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.
 ____________________________________________________________
 ____________________________________________________________
 Alright, until next time.

@@ -41,8 +41,39 @@ GUI tests check the badges, long-command wrapping without badge overlap, and the
 Input-bar checks cover the command placeholder, aligned controls, readable fonts, Enter and Send submission,
 and separation from the conversation when the window is resized, including a short window.
 
-The tests preserve current behavior; they do not add new date-order validation, storage escaping, or recovery
-from corrupted storage files. Corrupted-file recovery remains outside the implemented feature set.
+Event commands reject start dates later than end dates before changing tasks or storage. Tests cover both
+date formats, equal dates, leap-day and year boundaries, yellow GUI warning status, console recovery,
+and preservation of saved tasks and undo history after invalid input. Validation applies to new commands;
+loading existing saved events is unchanged. Storage escaping remains outside the implemented feature set.
+Impossible calendar dates are rejected for deadlines, both event endpoints, and both date filters.
+Regression cases include February 30 in leap and non-leap years, February 29 in non-leap years (including
+2100), and valid leap days in 2000 and 2024, in both accepted formats. Invalid inputs produce a yellow
+warning with calendar-date guidance and preserve saved tasks and undo history.
+
+Duplicate additions are saved and remain undoable. `TaskList.hasDuplicate` compares type, description
+(ignoring case), and all dates, regardless of completion status. Tests cover all three task types,
+different descriptions/types/dates, empty and cleared lists, completed and loaded tasks, equivalent
+date formats, console warnings, undo/redo, and save-failure rollback without a misleading notice.
+GUI tests verify purple command rows, a `Duplicate` badge, matching pale lavender replies, and undo recovery.
+
+Invalid arguments for `todo`, `deadline`, `event`, `mark`, `unmark`, `delete`, `find`, `/by`, and `/from`
+include the command format and an example in both GUI and console responses. Date hints explain both
+accepted formats and the optional `sharp` modifier; task-number hints refer to `list`. Tests cover missing
+fields, invalid dates and event order, invalid/overflowing/nonexistent task numbers, aliases, and extra
+filter arguments. Failures preserve storage and undo history. Simple commands, successful additions,
+duplicates, unknown commands, and storage errors do not receive these argument hints.
+
+Unknown or blank input includes a compact list of all commands in the red response, grouped by purpose,
+including `undo undo` for redo. GUI, console, and exact UI-output tests cover this command list.
+Storage errors retain their focused error message without unrelated command suggestions.
+
+The `help` command displays the same command list with success status, including itself. Tests cover
+case and surrounding whitespace, rejection of extra arguments, console output, unchanged storage,
+and preservation of undo history.
+
+Load failures, including malformed task types, field counts, completion flags, and dates, discard the
+entire loaded list and report an empty-list restart in the console and GUI. Tests verify the red startup
+notice, no partial loading, unchanged files at startup, and successful saving/reloading of new tasks.
 
 ## Running the tests
 

@@ -64,6 +64,17 @@
     -fx-text-fill: #594000;
 }
 
+.command-row.duplicate {
+    -fx-background-color: #6f42a6;
+    -fx-border-color: #4d2878;
+}
+
+.duplicate .reply-label {
+    -fx-background-color: #f1e7fb;
+    -fx-border-color: #6f42a6;
+    -fx-text-fill: #4d2878;
+}
+
 .command-row.error {
     -fx-background-color: #b3261e;
     -fx-border-color: #7e1914;

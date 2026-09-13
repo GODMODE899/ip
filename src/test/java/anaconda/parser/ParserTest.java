@@ -52,8 +52,8 @@ public class ParserTest {
     }
 
     @Test
-    public void parse_unexpectedArguments_rejectsListClearAndBye() {
-        for (String command : new String[] {"list", "clear"}) {
+    public void parse_unexpectedArguments_rejectsListHelpClearAndBye() {
+        for (String command : new String[] {"list", "help", "clear"}) {
             assertEquals("The " + command + " command does not take extra text.",
                     assertThrows(AnacondaException.class, () ->
                             parser.parse(command + " extra")).getMessage());
@@ -111,6 +111,37 @@ public class ParserTest {
         assertEquals(LocalDate.of(2026, 8, 18), task.getFrom());
         assertEquals(LocalDate.of(2026, 8, 19), task.getTo());
         assertFalse(task.isDone());
+    }
+
+    @Test
+    public void parseTask_eventStartAfterEnd_throwsHelpfulException() {
+        String[] reversedRanges = {
+            "2026-09-14 /to 2026-09-13",
+            "14-09-2026 /to 13-09-2026",
+            "2026-01-01 /to 31-12-2025",
+            "01-03-2024 /to 2024-02-29"
+        };
+        for (String range : reversedRanges) {
+            AnacondaException exception = assertThrows(AnacondaException.class, () ->
+                    parser.parseTask(Command.EVENT, "meeting /from " + range));
+            assertEquals("An event's start date cannot be later than its end date.", exception.getMessage());
+            assertEquals(AnacondaException.Reason.INVALID_INPUT, exception.getReason());
+        }
+    }
+
+    @Test
+    public void parseTask_eventEqualOrIncreasingDates_acceptsRange() throws AnacondaException {
+        String[] validRanges = {
+            "2024-02-29 /to 29-02-2024",
+            "29-02-2024 /to 2024-02-29",
+            "29-02-2024 /to 2024-03-01",
+            "2025-12-31 /to 01-01-2026"
+        };
+        for (String range : validRanges) {
+            Event task = assertInstanceOf(Event.class,
+                    parser.parseTask(Command.EVENT, "meeting /from " + range));
+            assertFalse(task.getFrom().isAfter(task.getTo()), range);
+        }
     }
 
     @Test
@@ -178,7 +209,13 @@ public class ParserTest {
     @Test
     public void parseTask_impossibleOrMalformedDates_rejectsEveryDateField() {
         String[] invalidDates = {
+            "2026-02-30",
+            "30-02-2026",
+            "2024-02-30",
+            "30-02-2024",
             "2023-02-29",
+            "29-02-2023",
+            "2100-02-29",
             "31-04-2026",
             "2026-13-01",
             "2026-00-01",
@@ -266,10 +303,29 @@ public class ParserTest {
 
     @Test
     public void parseDateFilter_invalidDate_throwsDateException() {
-        for (String input : new String[] {"2023-02-29", "31-04-2026 sharp", "tomorrow"}) {
-            assertEquals("Dates must use yyyy-MM-dd or dd-MM-yyyy.",
-                    assertThrows(AnacondaException.class, () ->
-                            parser.parseDateFilter(input, Command.BY)).getMessage());
+        for (Command command : new Command[] {Command.BY, Command.FROM}) {
+            for (String input : new String[] {"2026-02-30", "30-02-2024 sharp", "2023-02-29",
+                "29-02-2100", "31-04-2026 sharp", "tomorrow"}) {
+                assertEquals("Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format.",
+                        assertThrows(AnacondaException.class, () ->
+                                parser.parseDateFilter(input, command)).getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void parseTask_validLeapDays_acceptsCalendarDates() throws AnacondaException {
+        for (String date : new String[] {"2000-02-29", "29-02-2000", "2024-02-29", "29-02-2024"}) {
+            Deadline deadline = assertInstanceOf(Deadline.class,
+                    parser.parseTask(Command.DEADLINE, "report /by " + date));
+            Event event = assertInstanceOf(Event.class,
+                    parser.parseTask(Command.EVENT, "meeting /from " + date + " /to " + date));
+            assertEquals(29, deadline.getBy().getDayOfMonth());
+            assertEquals(deadline.getBy(), event.getFrom());
+            assertEquals(deadline.getBy(), event.getTo());
+            for (Command command : new Command[] {Command.BY, Command.FROM}) {
+                assertEquals(deadline.getBy(), parser.parseDateFilter(date, command).date());
+            }
         }
     }
 }

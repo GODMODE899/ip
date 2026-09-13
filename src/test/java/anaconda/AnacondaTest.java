@@ -43,6 +43,125 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getCommandResponse_duplicateTasks_savesOnceAndSupportsUndoAndRedo() throws IOException {
+        String[][] commands = {
+            {"todo Read book", "todo read BOOK"},
+            {"deadline report /by 2026-09-13", "deadline REPORT /by 13-09-2026"},
+            {"event meeting /from 2026-09-13 /to 2026-09-14",
+                "event MEETING /from 13-09-2026 /to 14-09-2026"}
+        };
+        for (int i = 0; i < commands.length; i++) {
+            Path file = temporaryDirectory.resolve("duplicates-" + i + ".txt");
+            Anaconda anaconda = new Anaconda(file);
+            assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse(commands[i][0]).status());
+            anaconda.getResponse("mark 1");
+            List<String> original = Files.readAllLines(file);
+            anaconda = new Anaconda(file);
+            Anaconda.CommandResponse response = anaconda.getCommandResponse(commands[i][1]);
+            assertEquals(Anaconda.ResponseStatus.DUPLICATE, response.status());
+            assertTrue(response.text().contains("Now you have 2 tasks in the list."));
+            assertTrue(response.text().contains("Duplicate: this task is already in your list. I've added it anyway."));
+            assertTrue(response.text().contains("Type undo to remove this addition if it was accidental."));
+            List<String> duplicated = Files.readAllLines(file);
+            assertEquals(2, duplicated.size());
+            assertEquals(original.getFirst(), duplicated.getFirst());
+            assertTrue(duplicated.getLast().contains(" | 0 | "));
+            assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("undo").status());
+            assertEquals(original, Files.readAllLines(file));
+            assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("undo undo").status());
+            assertEquals(duplicated, Files.readAllLines(file));
+        }
+    }
+
+    @Test
+    public void getCommandResponse_duplicateSaveFailure_reportsOnlyErrorAndPreservesHistory() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        Files.delete(file);
+        Files.createDirectory(file);
+        Anaconda.CommandResponse response = anaconda.getCommandResponse("todo book");
+        assertEquals(Anaconda.ResponseStatus.ERROR, response.status());
+        assertEquals("Oops! I couldn't save your task list.", response.text());
+        assertEquals("Your list:" + System.lineSeparator() + "1.[T][ ] book", anaconda.getResponse("list"));
+        Files.delete(file);
+        anaconda.getResponse("undo");
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void run_duplicateTask_warnsAndLeavesRemovalToUser() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file, "todo book\ntodo book\nlist\nundo\nbye\n");
+        assertTrue(output.contains("Duplicate: this task is already in your list. I've added it anyway."));
+        assertTrue(output.contains("Type undo to remove this addition if it was accidental."));
+        assertTrue(output.contains("Your list:\n1.[T][ ] book\n2.[T][ ] book\n"));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
+    }
+
+    @Test
+    public void getCommandResponse_invalidArguments_showsCommandSpecificFormatAndExample() throws IOException {
+        String[][] cases = {
+            {"todo", "todo DESCRIPTION", "todo read book"},
+            {"deadline", "deadline DESCRIPTION /by DATE", "deadline report /by 2026-09-20"},
+            {"deadline report /by", "deadline DESCRIPTION /by DATE", "deadline report /by 2026-09-20"},
+            {"deadline /by 2026-09-20", "deadline DESCRIPTION /by DATE", "deadline report /by 2026-09-20"},
+            {"deadline report /by 2026-02-30", "deadline DESCRIPTION /by DATE", "deadline report /by 2026-09-20"},
+            {"event", "event DESCRIPTION /from START_DATE /to END_DATE",
+                "event meeting /from 2026-09-20 /to 2026-09-21"},
+            {"event meeting /from 2026-09-21 /to 2026-09-20", "event DESCRIPTION /from START_DATE /to END_DATE",
+                "event meeting /from 2026-09-20 /to 2026-09-21"},
+            {"event meeting /from tomorrow /to today", "event DESCRIPTION /from START_DATE /to END_DATE",
+                "event meeting /from 2026-09-20 /to 2026-09-21"},
+            {"mark", "mark TASK_NUMBER", "mark 1"},
+            {"MARK abc", "mark TASK_NUMBER", "mark 1"},
+            {"mark 2", "mark TASK_NUMBER", "mark 1"},
+            {"unmark", "unmark TASK_NUMBER", "unmark 1"},
+            {"unmark 1 2", "unmark TASK_NUMBER", "unmark 1"},
+            {"unmark 0", "unmark TASK_NUMBER", "unmark 1"},
+            {"delete", "delete TASK_NUMBER", "delete 1"},
+            {"delete 2147483648", "delete TASK_NUMBER", "delete 1"},
+            {"delete -1", "delete TASK_NUMBER", "delete 1"},
+            {"  FiNd  ", "find KEYWORD", "find book"},
+            {"/by", "/by DATE [sharp]", "/by 2026-09-20"},
+            {"BY tomorrow", "/by DATE [sharp]", "/by 2026-09-20"},
+            {"/BY 2026-09-20 extra", "/by DATE [sharp]", "/by 2026-09-20"},
+            {"/from", "/from DATE [sharp]", "/from 2026-09-20"},
+            {"FROM 2026-02-30 sharp", "/from DATE [sharp]", "/from 2026-09-20"},
+            {"/from 2026-09-20 sharp extra", "/from DATE [sharp]", "/from 2026-09-20"}
+        };
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        String saved = Files.readString(file);
+        for (String[] testCase : cases) {
+            Anaconda.CommandResponse response = anaconda.getCommandResponse(testCase[0]);
+            assertEquals(Anaconda.ResponseStatus.WARNING, response.status(), testCase[0]);
+            String guidance = "Format: " + testCase[1] + System.lineSeparator() + "Example: " + testCase[2];
+            assertTrue(response.text().contains(guidance), testCase[0]);
+            if (testCase[1].contains("DATE")) {
+                assertTrue(response.text().contains("Dates: yyyy-MM-dd or dd-MM-yyyy."), testCase[0]);
+            }
+            assertEquals(saved, Files.readString(file), testCase[0]);
+            String consoleOutput = runSession(file, testCase[0] + "\nbye\n");
+            assertTrue(consoleOutput.contains(guidance.replace("\r\n", "\n")), testCase[0]);
+        }
+        anaconda.getResponse("undo");
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void getCommandResponse_simpleCommandsAndSuccessfulInput_omitsArgumentGuidance() {
+        Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
+        for (String command : List.of("list extra", "clear extra", "bye extra", "undo extra", "undo",
+                "undo undo", "unknown", "", "todo book", "todo book", "find book", "list", "mark 1")) {
+            assertFalse(anaconda.getResponse(command).contains("Format:"), command);
+        }
+    }
+
+    @Test
     public void getCommandResponse_recognizedInvalidCommands_returnsWarning() {
         Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
         for (String input : List.of("todo", "deadline essay", "event meeting /from 2026-09-13",
@@ -55,13 +174,116 @@ public class AnacondaTest {
     }
 
     @Test
+    public void getCommandResponse_reversedEvent_warnsWithoutSavingOrAddingUndoStep() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        String command = "event meeting /from 2026-09-14 /to 2026-09-13";
+        Anaconda.CommandResponse response = anaconda.getCommandResponse(command);
+        assertEquals(Anaconda.ResponseStatus.WARNING, response.status());
+        assertTrue(response.text().startsWith("Oops! An event's start date cannot be later than its end date."
+                + System.lineSeparator() + "Format: event DESCRIPTION /from START_DATE /to END_DATE"));
+        assertFalse(Files.exists(file));
+
+        anaconda.getResponse("todo book");
+        String saved = Files.readString(file);
+        assertEquals(response, anaconda.getCommandResponse(command));
+        assertEquals(saved, Files.readString(file));
+        assertFalse(anaconda.getResponse("list").contains("meeting"));
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."));
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void run_reversedEvent_reportsErrorAndAcceptsCorrectedEvent() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file, "event meeting /from 2026-09-14 /to 2026-09-13\n"
+                + "event meeting /from 2026-09-13 /to 2026-09-13\nlist\nbye\n");
+        assertTrue(output.contains("Oops! An event's start date cannot be later than its end date."));
+        assertFalse(output.contains("Now you have 2 tasks"));
+        assertTrue(output.contains("Your list:\n1.[E][ ] meeting (from: Sep 13 2026 to: Sep 13 2026)"));
+        assertEquals(List.of("E | 0 | meeting | 2026-09-13 | 2026-09-13"), Files.readAllLines(file));
+    }
+
+    @Test
+    public void getCommandResponse_impossibleDates_warnsWithoutChangingTasksOrUndoHistory() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        anaconda.getResponse("todo book");
+        String saved = Files.readString(file);
+        for (String date : List.of("2026-02-30", "30-02-2026", "2023-02-29", "29-02-2100")) {
+            for (String command : List.of("deadline report /by " + date,
+                    "event meeting /from " + date + " /to 2101-01-01",
+                    "event meeting /from 2020-01-01 /to " + date, "/by " + date, "/from " + date + " sharp")) {
+                Anaconda.CommandResponse response = anaconda.getCommandResponse(command);
+                assertEquals(Anaconda.ResponseStatus.WARNING, response.status(), command);
+                assertTrue(response.text().startsWith(
+                        "Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format."
+                                + System.lineSeparator() + "Format: "), command);
+                assertEquals(saved, Files.readString(file), command);
+            }
+        }
+        assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."));
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+    }
+
+    @Test
+    public void run_impossibleDate_reportsErrorAndAcceptsValidLeapDay() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file, "deadline report /by 2024-02-30\n"
+                + "deadline report /by 2024-02-29\nlist\nbye\n");
+        assertTrue(output.contains("Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format."));
+        assertTrue(output.contains("Your list:\n1.[D][ ] report (by: Feb 29 2024)"));
+        assertEquals(List.of("D | 0 | report | 2024-02-29"), Files.readAllLines(file));
+    }
+
+    @Test
+    public void getCommandResponse_help_listsCommandsWithoutSavingOrAddingUndoHistory() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        Anaconda anaconda = new Anaconda(file);
+        Anaconda.CommandResponse help = anaconda.getCommandResponse("  HeLp  ");
+        assertEquals(Anaconda.ResponseStatus.SUCCESS, help.status());
+        assertTrue(help.text().startsWith("Available commands:"));
+        assertTrue(help.text().contains("Help: help"));
+        assertFalse(Files.exists(file));
+        anaconda.getResponse("todo book");
+        String saved = Files.readString(file);
+        assertEquals(help, anaconda.getCommandResponse("help"));
+        assertEquals(saved, Files.readString(file));
+        Anaconda.CommandResponse invalid = anaconda.getCommandResponse("help extra");
+        assertEquals(Anaconda.ResponseStatus.WARNING, invalid.status());
+        assertEquals("Oops! The help command does not take extra text.", invalid.text());
+        anaconda.getResponse("undo");
+        assertTrue(Files.readAllLines(file).isEmpty());
+        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        String console = runSession(file, "help\nbye\n");
+        assertTrue(console.contains(help.text().replace("\r\n", "\n")));
+        assertFalse(console.contains("Oops!"));
+    }
+
+    @Test
     public void getCommandResponse_unknownOrBlankInput_returnsError() {
         Anaconda anaconda = new Anaconda(temporaryDirectory.resolve("tasks.txt"));
         for (String input : List.of("blah", "todoo read book", "/todo read book", "yes", "", "   ", "???")) {
             Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
             assertEquals(Anaconda.ResponseStatus.ERROR, response.status(), input);
             assertTrue(response.text().startsWith("Oops!"), input);
+            assertTrue(response.text().contains("Available commands:"), input);
+            for (String group : List.of("Add: todo, deadline, event", "View/search: list, find, /by, /from",
+                    "Update: mark, unmark, delete, clear", "History: undo, undo undo (redo)", "Exit: bye")) {
+                assertTrue(response.text().contains(group), input);
+            }
         }
+    }
+
+    @Test
+    public void run_unknownInput_listsCommandsAndContinuesWithoutChangingTasks() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        String output = runSession(file, "nonsense\ntodo book\nbye\n");
+        assertTrue(output.contains("Oops! I don't recognize that command.\nAvailable commands:\n"));
+        assertTrue(output.contains("History: undo, undo undo (redo)\nHelp: help\nExit: bye\n"));
+        assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
     @Test
@@ -206,7 +428,7 @@ public class AnacondaTest {
         assertEquals(String.join(lineSeparator,
                 "Your list:",
                 "1.[T][ ] book"), anaconda.getResponse("list"));
-        assertEquals("Oops! I don't recognize that command.", anaconda.getResponse("unknown"));
+        assertTrue(anaconda.getResponse("unknown").contains("Available commands:"));
         assertEquals("Fine. Everything's gone.", anaconda.getResponse("clear"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Your list:", anaconda.getResponse("list"));
@@ -223,7 +445,7 @@ public class AnacondaTest {
             Anaconda anaconda = new Anaconda(file);
 
             assertTrue(anaconda.getResponse("todo café 读书").contains("[T][ ] café 读书"));
-            assertEquals("Oops! I don't recognize that command.", anaconda.getResponse("unknown"));
+            assertTrue(anaconda.getResponse("unknown").contains("Available commands:"));
             assertSame(consoleInput, System.in);
             assertSame(consoleOutput, System.out);
             assertEquals("", session.output());
@@ -606,9 +828,30 @@ public class AnacondaTest {
     }
 
     @Test
+    public void constructor_corruptedFile_discardsWholeListAndAllowsSavingNewTasks() throws IOException {
+        Path file = temporaryDirectory.resolve("tasks.txt");
+        for (String malformed : List.of("garbage", "T | 0", "T | maybe | book", "T | 0 | book | extra",
+                "D | 0 | report | 2026-02-30", "E | 0 | meeting | tomorrow | 2026-09-20", "")) {
+            String saved = "T | 0 | valid task\n" + malformed + "\n";
+            Files.writeString(file, saved);
+            try (ConsoleSession session = new ConsoleSession("")) {
+                Anaconda anaconda = new Anaconda(file);
+                assertTrue(anaconda.hasLoadingError());
+                assertTrue(session.output().contains("Starting with a new empty list."));
+                assertEquals("Your list:", anaconda.getResponse("list"));
+                assertEquals(saved, Files.readString(file));
+                assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("todo new task").status());
+                assertEquals(List.of("T | 0 | new task"), Files.readAllLines(file));
+                assertFalse(new Anaconda(file).hasLoadingError());
+            }
+        }
+    }
+
+    @Test
     public void constructor_unreadableDataFile_reportsErrorAndStartsEmpty() {
         String output = runSession(temporaryDirectory, "list\nbye\n");
-        assertTrue(output.startsWith("Oops! I couldn't load your saved tasks.\n"));
+        assertTrue(output.startsWith("Oops! Your saved list was compromised or could not be read. "
+                + "Starting with a new empty list.\n"));
         assertTrue(output.contains("Your list:\n"
                 + "____________________________________________________________"));
         assertTrue(output.contains("Alright, until next time."));

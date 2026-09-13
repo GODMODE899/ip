@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -84,14 +85,70 @@ public class MainWindowTest {
             assertTrue(((Label) added.getChildren().get(1)).getText().contains("read book"));
             DialogBox warning = (DialogBox) dialogs.getChildren().get(3);
             assertTrue(((Label) warning.getChildren().get(1)).getText().contains("cannot be empty"));
+            assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Format: todo DESCRIPTION"));
+            assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Example: todo read book"));
             DialogBox error = (DialogBox) dialogs.getChildren().get(5);
             assertTrue(((Label) error.getChildren().get(1)).getText().contains("Oops!"));
+            assertTrue(((Label) error.getChildren().get(1)).getText().contains("Available commands:"));
             DialogBox cleared = (DialogBox) dialogs.getChildren().get(7);
             assertEquals("Fine. Everything's gone.", ((Label) cleared.getChildren().get(1)).getText());
             DialogBox restored = (DialogBox) dialogs.getChildren().get(9);
             assertTrue(((Label) restored.getChildren().get(1)).getText().contains("1.[T][ ] read book"));
             DialogBox goodbye = (DialogBox) dialogs.getChildren().get(11);
             assertEquals(0.5, goodbye.getChildren().get(0).getOpacity());
+            return null;
+        });
+    }
+
+    @Test
+    public void setAnaconda_duplicateAddition_rendersPurpleBadgeAndReplyThenAllowsUndo() throws Exception {
+        JavaFxTestSupport.runOnFxThread(() -> {
+            FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("/View/MainWindow.fxml"));
+            AnchorPane root = loader.load();
+            loader.<MainWindow>getController().setAnaconda(new Anaconda(temporaryDirectory.resolve("tasks.txt")));
+            new Scene(root, 400, 600);
+            TextField input = (TextField) root.lookup("#userInput");
+            Button send = (Button) root.lookup("#sendButton");
+            VBox dialogs = (VBox) ((ScrollPane) root.lookup("#scrollPane")).getContent();
+            for (String command : new String[] {"todo book", "todo book", "undo"}) {
+                input.setText(command);
+                send.fire();
+            }
+            root.applyCss();
+            root.layout();
+            DialogBox duplicate = (DialogBox) dialogs.getChildren().get(2);
+            assertTrue(duplicate.getStyleClass().contains("duplicate"));
+            assertFalse(duplicate.getStyleClass().contains("success"));
+            assertEquals("Duplicate", ((Label) duplicate.getChildren().get(2)).getText());
+            assertEquals(Color.web("#6f42a6"), duplicate.getBackground().getFills().getFirst().getFill());
+            DialogBox reply = (DialogBox) dialogs.getChildren().get(3);
+            Label replyText = (Label) reply.getChildren().get(1);
+            assertEquals(Color.web("#f1e7fb"), replyText.getBackground().getFills().getFirst().getFill());
+            assertTrue(replyText.getText().contains("Duplicate:"));
+            assertTrue(replyText.getText().contains("Type undo"));
+            DialogBox undo = (DialogBox) dialogs.getChildren().get(4);
+            assertEquals("OK", ((Label) undo.getChildren().get(2)).getText());
+            assertEquals(Color.web("#174d35"), undo.getBackground().getFills().getFirst().getFill());
+            Label undoText = (Label) ((DialogBox) dialogs.getChildren().get(5)).getChildren().get(1);
+            assertTrue(undoText.getText().contains("1.[T][ ] book"));
+            assertFalse(undoText.getText().contains("2.[T]"));
+            return null;
+        });
+    }
+
+    @Test
+    public void setAnaconda_corruptedFile_showsRedStartupWarning() throws Exception {
+        Path file = temporaryDirectory.resolve("corrupt.txt");
+        Files.writeString(file, "corrupted data");
+        JavaFxTestSupport.runOnFxThread(() -> {
+            FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("/View/MainWindow.fxml"));
+            AnchorPane root = loader.load();
+            loader.<MainWindow>getController().setAnaconda(new Anaconda(file));
+            VBox dialogs = (VBox) ((ScrollPane) root.lookup("#scrollPane")).getContent();
+            assertEquals(1, dialogs.getChildren().size());
+            DialogBox warning = (DialogBox) dialogs.getChildren().getFirst();
+            assertTrue(warning.getStyleClass().contains("error"));
+            assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Starting with a new empty list."));
             return null;
         });
     }

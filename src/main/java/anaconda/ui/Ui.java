@@ -11,6 +11,8 @@ import anaconda.task.Task;
  * Handles console input and all messages displayed by the chatbot.
  */
 public class Ui implements AutoCloseable {
+    public static final String LOADING_ERROR_MESSAGE =
+            "Your saved list was compromised or could not be read. Starting with a new empty list.";
     private static final String LINE = "____________________________________________________________";
 
     private final Scanner scanner;
@@ -79,10 +81,23 @@ public class Ui implements AutoCloseable {
     }
 
     /**
+     * Lists available commands in compact groups for users whose input was not recognized.
+     */
+    public void showCommandList() {
+        showToUser("Available commands:",
+                "Add: todo, deadline, event",
+                "View/search: list, find, /by, /from",
+                "Update: mark, unmark, delete, clear",
+                "History: undo, undo undo (redo)",
+                "Help: help",
+                "Exit: bye");
+    }
+
+    /**
      * Reports that previously saved tasks could not be loaded.
      */
     public void showLoadingError() {
-        showError("I couldn't load your saved tasks.");
+        showError(LOADING_ERROR_MESSAGE);
     }
 
     /**
@@ -126,6 +141,14 @@ public class Ui implements AutoCloseable {
                 "Got it. I've added this task:",
                 "  " + task,
                 "Now you have " + taskCount + " tasks in the list.");
+    }
+
+    /**
+     * Warns that the newly added task duplicates an existing task and explains how to undo it.
+     */
+    public void showDuplicateWarning() {
+        showToUser("Duplicate: this task is already in your list. I've added it anyway.",
+                "Type undo to remove this addition if it was accidental.");
     }
 
     /**

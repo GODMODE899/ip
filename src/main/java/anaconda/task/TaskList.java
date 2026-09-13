@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import anaconda.exception.AnacondaException;
 import anaconda.parser.Command;
@@ -55,6 +56,19 @@ public class TaskList {
      */
     public void add(Task task) {
         tasks.add(task);
+    }
+
+    /**
+     * Checks for the same type, case-insensitive description, and dates, ignoring completion status.
+     *
+     * @param candidate Task to compare with the current list.
+     * @return Whether an existing task matches without changing the list.
+     */
+    public boolean hasDuplicate(Task candidate) {
+        return tasks.stream().anyMatch(task -> task.getClass() == candidate.getClass()
+                && task.getDescription().equalsIgnoreCase(candidate.getDescription())
+                && Objects.equals(task.getEndDate(), candidate.getEndDate())
+                && (!(task instanceof Event event) || event.getFrom().equals(((Event) candidate).getFrom())));
     }
 
     /**

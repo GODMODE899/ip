@@ -82,11 +82,22 @@ public class UiTest {
     }
 
     @Test
+    public void showCommandList_availableCommands_printsCompactGroups() {
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            ui.showCommandList();
+            assertEquals("Available commands:\nAdd: todo, deadline, event\n"
+                    + "View/search: list, find, /by, /from\nUpdate: mark, unmark, delete, clear\n"
+                    + "History: undo, undo undo (redo)\nHelp: help\nExit: bye\n", session.output());
+        }
+    }
+
+    @Test
     public void showErrorAndLoadingError_printsHelpfulMessages() {
         try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
             ui.showError("Bad command.");
             ui.showLoadingError();
-            assertEquals("Oops! Bad command.\nOops! I couldn't load your saved tasks.\n", session.output());
+            assertEquals("Oops! Bad command.\nOops! Your saved list was compromised or could not be read. "
+                    + "Starting with a new empty list.\n", session.output());
         }
     }
 
@@ -152,6 +163,15 @@ public class UiTest {
             ui.showTaskAdded(task, 12);
             assertEquals("Got it. I've added this task:\n  [T][ ] book\n"
                     + "Now you have 12 tasks in the list.\n", session.output());
+        }
+    }
+
+    @Test
+    public void showDuplicateWarning_addedDuplicate_explainsAdditionAndUndo() {
+        try (ConsoleSession session = new ConsoleSession(""); Ui ui = new Ui()) {
+            ui.showDuplicateWarning();
+            assertEquals("Duplicate: this task is already in your list. I've added it anyway.\n"
+                    + "Type undo to remove this addition if it was accidental.\n", session.output());
         }
     }
 

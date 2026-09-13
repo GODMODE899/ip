@@ -24,10 +24,10 @@ public class Anaconda {
     private static final Path DATA_FILE = Path.of("data", "anaconda.txt");
 
     /**
-     * Describes successful input, a recognized command needing correction, or an error.
+     * Describes successful input, an added duplicate, invalid input, or an execution error.
      */
     public enum ResponseStatus {
-        SUCCESS, WARNING, ERROR
+        SUCCESS, DUPLICATE, WARNING, ERROR
     }
 
     /**
@@ -43,6 +43,7 @@ public class Anaconda {
     private final TaskList tasks;
     private final Ui ui;
     private final Parser parser;
+    private boolean hasLoadingError;
     /**
      * States before successfully saved mutations, most recent first; history lasts for this session.
      */
@@ -71,6 +72,10 @@ public class Anaconda {
         tasks = loadTasks();
     }
 
+    public boolean hasLoadingError() {
+        return hasLoadingError;
+    }
+
     /**
      * Starts the chatbot using the default relative data path.
      *
@@ -96,7 +101,7 @@ public class Anaconda {
             try {
                 handleCommand(input, ui);
             } catch (AnacondaException exception) {
-                ui.showError(exception.getMessage());
+                showCommandError(exception, ui);
             }
             ui.showLine();
         }
@@ -142,10 +147,9 @@ public class Anaconda {
      */
     private ResponseStatus processGuiInput(String input, Ui responseUi) {
         try {
-            handleCommand(input, responseUi);
-            return ResponseStatus.SUCCESS;
+            return handleCommand(input, responseUi);
         } catch (AnacondaException exception) {
-            responseUi.showError(exception.getMessage());
+            showCommandError(exception, responseUi);
             return switch (exception.getReason()) {
                 case INVALID_INPUT -> ResponseStatus.WARNING;
                 case UNKNOWN_COMMAND, STORAGE_ERROR -> ResponseStatus.ERROR;
@@ -154,19 +158,74 @@ public class Anaconda {
     }
 
     /**
+     * Displays an error and helps users discover commands when their input is unrecognized.
+     */
+    private void showCommandError(AnacondaException exception, Ui responseUi) {
+        responseUi.showError(exception.getMessage());
+        if (exception.getReason() == AnacondaException.Reason.UNKNOWN_COMMAND) {
+            responseUi.showCommandList();
+        }
+    }
+
+    /**
      * Dispatches a parsed command to the task list, storage, and user interface.
      *
      * @param input Complete user input.
      * @param responseUi Destination for this command's messages.
+     * @return Outcome of the saved change or completed command.
      * @throws AnacondaException If the command is invalid or saving fails.
      */
-    private void handleCommand(String input, Ui responseUi) throws AnacondaException {
+    private ResponseStatus handleCommand(String input, Ui responseUi) throws AnacondaException {
         Parser.ParsedCommand parsedCommand = parseAndUpdateUndoChain(input);
+        try {
+            return executeCommand(parsedCommand, responseUi);
+        } catch (AnacondaException exception) {
+            String guidance = getInputGuidance(parsedCommand.command());
+            if (exception.getReason() != AnacondaException.Reason.INVALID_INPUT || guidance.isEmpty()) {
+                throw exception;
+            }
+            throw new AnacondaException(exception.getMessage() + System.lineSeparator() + guidance,
+                    exception.getReason());
+        }
+    }
+
+    /**
+     * Returns syntax and an example for commands that accept user-specified details.
+     */
+    private String getInputGuidance(Command command) {
+        String line = System.lineSeparator();
+        String dateGuidance = line + "Dates: yyyy-MM-dd or dd-MM-yyyy.";
+        return switch (command) {
+            case TODO -> "Format: todo DESCRIPTION" + line + "Example: todo read book";
+            case DEADLINE -> "Format: deadline DESCRIPTION /by DATE" + line
+                    + "Example: deadline report /by 2026-09-20" + dateGuidance;
+            case EVENT -> "Format: event DESCRIPTION /from START_DATE /to END_DATE" + line
+                    + "Example: event meeting /from 2026-09-20 /to 2026-09-21" + dateGuidance;
+            case MARK -> "Format: mark TASK_NUMBER" + line + "Example: mark 1" + line
+                    + "Use a task number from list.";
+            case UNMARK -> "Format: unmark TASK_NUMBER" + line + "Example: unmark 1" + line
+                    + "Use a task number from list.";
+            case DELETE -> "Format: delete TASK_NUMBER" + line + "Example: delete 1" + line
+                    + "Use a task number from list.";
+            case FIND -> "Format: find KEYWORD" + line + "Example: find book";
+            case BY -> "Format: /by DATE [sharp]" + line + "Example: /by 2026-09-20" + dateGuidance
+                    + line + "Add sharp to match only that exact date.";
+            case FROM -> "Format: /from DATE [sharp]" + line + "Example: /from 2026-09-20" + dateGuidance
+                    + line + "Add sharp to match only that exact date.";
+            default -> "";
+        };
+    }
+
+    /**
+     * Executes a recognized command, preserving validation and persistence failures for the caller.
+     */
+    private ResponseStatus executeCommand(Parser.ParsedCommand parsedCommand, Ui responseUi) throws AnacondaException {
         Command command = parsedCommand.command();
         String arguments = parsedCommand.arguments();
 
         switch (command) {
             case LIST -> responseUi.showTasks(tasks.asList(), false);
+            case HELP -> responseUi.showCommandList();
             case MARK, UNMARK -> changeTaskStatus(arguments, command == Command.MARK, responseUi);
             case DELETE -> deleteTask(arguments, responseUi);
             case UNDO -> {
@@ -178,13 +237,16 @@ public class Anaconda {
             }
             case CLEAR -> clearTasks(responseUi);
             case FIND -> findTasks(arguments, responseUi);
-            case TODO, DEADLINE, EVENT -> addTask(command, arguments, responseUi);
+            case TODO, DEADLINE, EVENT -> {
+                return addTask(command, arguments, responseUi);
+            }
             case BY, FROM -> filterTasksByDate(command, arguments, responseUi);
             case BYE -> {
                 // Console and GUI entry points handle standalone bye commands before dispatch.
             }
             default -> throw new IllegalStateException("Unsupported command: " + command);
         }
+        return ResponseStatus.SUCCESS;
     }
 
     /**
@@ -225,14 +287,20 @@ public class Anaconda {
     }
 
     /**
-     * Creates a task and reports success only after saving.
+     * Creates and saves a task, then warns about duplicates while retaining the addition for undo.
      */
-    private void addTask(Command command, String arguments, Ui responseUi) throws AnacondaException {
+    private ResponseStatus addTask(Command command, String arguments, Ui responseUi) throws AnacondaException {
         Task task = parser.parseTask(command, arguments);
+        boolean isDuplicate = tasks.hasDuplicate(task);
         TaskList.Snapshot previousState = tasks.snapshot();
         tasks.add(task);
         saveChange(previousState);
         responseUi.showTaskAdded(task, tasks.size());
+        if (isDuplicate) {
+            responseUi.showDuplicateWarning();
+            return ResponseStatus.DUPLICATE;
+        }
+        return ResponseStatus.SUCCESS;
     }
 
     /**
@@ -308,6 +376,7 @@ public class Anaconda {
         try {
             return new TaskList(storage.loadTasks());
         } catch (IOException exception) {
+            hasLoadingError = true;
             ui.showLoadingError();
             return new TaskList();
         }
