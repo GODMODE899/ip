@@ -161,10 +161,11 @@ public class Anaconda {
      * Displays an error and helps users discover commands when their input is unrecognized.
      */
     private void showCommandError(AnacondaException exception, Ui responseUi) {
-        responseUi.showError(exception.getMessage());
+        String message = exception.getMessage();
         if (exception.getReason() == AnacondaException.Reason.UNKNOWN_COMMAND) {
-            responseUi.showCommandList();
+            message += System.lineSeparator() + "You can ask for help.";
         }
+        responseUi.showError(message);
     }
 
     /**

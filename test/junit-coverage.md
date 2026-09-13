@@ -63,11 +63,11 @@ fields, invalid dates and event order, invalid/overflowing/nonexistent task numb
 filter arguments. Failures preserve storage and undo history. Simple commands, successful additions,
 duplicates, unknown commands, and storage errors do not receive these argument hints.
 
-Unknown or blank input includes a compact list of all commands in the red response, grouped by purpose,
-including `undo undo` for redo. GUI, console, and exact UI-output tests cover this command list.
+Unknown or blank input includes `Type help to see the available commands.` in the red response.
+GUI and console tests check the hint; response tests verify two lines without the full command list.
 Storage errors retain their focused error message without unrelated command suggestions.
 
-The `help` command displays the same command list with success status, including itself. Tests cover
+The `help` command displays the full command list with success status, including itself. Tests cover
 case and surrounding whitespace, rejection of extra arguments, console output, unchanged storage,
 and preservation of undo history.
 

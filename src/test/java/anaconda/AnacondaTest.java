@@ -270,20 +270,19 @@ public class AnacondaTest {
             Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
             assertEquals(Anaconda.ResponseStatus.ERROR, response.status(), input);
             assertTrue(response.text().startsWith("Hang on."), input);
-            assertTrue(response.text().contains("Available commands:"), input);
-            for (String group : List.of("Add: todo, deadline, event", "View/search: list, find, /by, /from",
-                    "Update: mark, unmark, delete, clear", "History: undo, undo undo (redo)", "Exit: bye")) {
-                assertTrue(response.text().contains(group), input);
-            }
+            assertTrue(response.text().endsWith("Type help to see the available commands."), input);
+            assertFalse(response.text().contains("Available commands:"), input);
+            assertEquals(2, response.text().lines().count(), input);
         }
     }
 
     @Test
-    public void run_unknownInput_listsCommandsAndContinuesWithoutChangingTasks() throws IOException {
+    public void run_unknownInput_suggestsHelpAndContinuesWithoutChangingTasks() throws IOException {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "nonsense\ntodo book\nbye\n");
-        assertTrue(output.contains("Hang on. Yeah... I don't recognize that command.\nAvailable commands:\n"));
-        assertTrue(output.contains("History: undo, undo undo (redo)\nHelp: help\nExit: bye\n"));
+        assertTrue(output.contains("Hang on. Yeah... I don't recognize that command.\n"
+                + "Type help to see the available commands.\n"));
+        assertFalse(output.contains("Available commands:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
@@ -429,7 +428,7 @@ public class AnacondaTest {
         assertEquals(String.join(lineSeparator,
                 "Here's what you've got:",
                 "1.[T][ ] book"), anaconda.getResponse("list"));
-        assertTrue(anaconda.getResponse("unknown").contains("Available commands:"));
+        assertTrue(anaconda.getResponse("unknown").contains("Type help"));
         assertEquals("Fine. Everything's gone.", anaconda.getResponse("clear"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertEquals("Here's what you've got:", anaconda.getResponse("list"));
@@ -446,7 +445,7 @@ public class AnacondaTest {
             Anaconda anaconda = new Anaconda(file);
 
             assertTrue(anaconda.getResponse("todo café 读书").contains("[T][ ] café 读书"));
-            assertTrue(anaconda.getResponse("unknown").contains("Available commands:"));
+            assertTrue(anaconda.getResponse("unknown").contains("Type help"));
             assertSame(consoleInput, System.in);
             assertSame(consoleOutput, System.out);
             assertEquals("", session.output());
