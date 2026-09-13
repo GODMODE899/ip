@@ -38,6 +38,8 @@ and check dark green, yellow, and red command rows with matching reply backgroun
 from an error to a successful command.
 Command rows also show text badges (`OK`, `Check input`, `Error`) so status does not rely on color.
 GUI tests check the badges, long-command wrapping without badge overlap, and the retained 99 px avatar.
+Input-bar checks cover the command placeholder, aligned controls, readable fonts, Enter and Send submission,
+and separation from the conversation when the window is resized, including a short window.
 
 The tests preserve current behavior; they do not add new date-order validation, storage escaping, or recovery
 from corrupted storage files. Corrupted-file recovery remains outside the implemented feature set.

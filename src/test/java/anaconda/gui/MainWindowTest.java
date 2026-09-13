@@ -12,6 +12,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import anaconda.Anaconda;
 import anaconda.testutil.JavaFxTestSupport;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -20,6 +21,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -50,7 +52,11 @@ public class MainWindowTest {
 
             for (String command : new String[] {"todo read book", "todo", "nonsense", "bye"}) {
                 input.setText(command);
-                send.fire();
+                if (command.equals("todo read book")) {
+                    input.fireEvent(new ActionEvent());
+                } else {
+                    send.fire();
+                }
                 assertEquals("", input.getText());
             }
 
@@ -82,6 +88,37 @@ public class MainWindowTest {
             assertTrue(((Label) error.getChildren().get(1)).getText().contains("Oops!"));
             DialogBox goodbye = (DialogBox) dialogs.getChildren().get(7);
             assertEquals(0.5, goodbye.getChildren().get(0).getOpacity());
+            return null;
+        });
+    }
+
+    @Test
+    public void initialize_resizeWindow_keepsInputBarAlignedAndSeparateFromConversation() throws Exception {
+        JavaFxTestSupport.runOnFxThread(() -> {
+            FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("/View/MainWindow.fxml"));
+            AnchorPane root = loader.load();
+            new Scene(root);
+            TextField input = (TextField) root.lookup("#userInput");
+            Button send = (Button) root.lookup("#sendButton");
+            HBox inputBar = (HBox) root.lookup("#inputBar");
+            ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");
+            assertEquals("Enter a command\u2026", input.getPromptText());
+
+            for (int[] size : new int[][] {{400, 200}, {400, 600}, {760, 700}}) {
+                root.resize(size[0], size[1]);
+                root.applyCss();
+                root.layout();
+                assertEquals(input.getFont().getFamily(), send.getFont().getFamily());
+                assertEquals(14.0, input.getFont().getSize());
+                assertEquals(14.0, send.getFont().getSize());
+                assertEquals(input.getHeight(), send.getHeight());
+                assertEquals(input.getLayoutY(), send.getLayoutY());
+                assertTrue(input.getWidth() >= 280);
+                assertTrue(input.getBoundsInParent().getMaxX() < send.getBoundsInParent().getMinX());
+                assertTrue(send.getBoundsInParent().getMaxX() <= inputBar.getWidth());
+                assertTrue(scrollPane.getBoundsInParent().getMaxY() <= inputBar.getLayoutY());
+                assertEquals(size[1], inputBar.getBoundsInParent().getMaxY());
+            }
             return null;
         });
     }
