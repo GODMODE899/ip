@@ -47,7 +47,7 @@ public class Parser {
     public ParsedCommand parse(String input) throws AnacondaException {
         String trimmedInput = input.trim();
         if (trimmedInput.isEmpty()) {
-            throw new AnacondaException("Please enter a command.", AnacondaException.Reason.UNKNOWN_COMMAND);
+            throw new AnacondaException("Give me a command to work with.", AnacondaException.Reason.UNKNOWN_COMMAND);
         }
 
         String[] inputParts = trimmedInput.split("\\s+", 2);
@@ -123,7 +123,7 @@ public class Parser {
         try {
             return Integer.parseInt(arguments);
         } catch (NumberFormatException exception) {
-            throw new AnacondaException("Please provide one task number.");
+            throw new AnacondaException("I need one task number here.");
         }
     }
 
@@ -136,7 +136,7 @@ public class Parser {
      */
     public String parseKeyword(String arguments) throws AnacondaException {
         if (arguments.isEmpty()) {
-            throw new AnacondaException("Please provide a keyword to find.");
+            throw new AnacondaException("Give me a keyword to look for.");
         }
         return arguments;
     }
@@ -177,7 +177,8 @@ public class Parser {
                 default -> Command.valueOf(commandWord.toUpperCase(Locale.ROOT));
             };
         } catch (IllegalArgumentException exception) {
-            throw new AnacondaException("I don't recognize that command.", AnacondaException.Reason.UNKNOWN_COMMAND);
+            throw new AnacondaException("Yeah... I don't recognize that command.",
+                    AnacondaException.Reason.UNKNOWN_COMMAND);
         }
     }
 

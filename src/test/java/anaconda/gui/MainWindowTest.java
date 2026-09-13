@@ -88,7 +88,7 @@ public class MainWindowTest {
             assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Format: todo DESCRIPTION"));
             assertTrue(((Label) warning.getChildren().get(1)).getText().contains("Example: todo read book"));
             DialogBox error = (DialogBox) dialogs.getChildren().get(5);
-            assertTrue(((Label) error.getChildren().get(1)).getText().contains("Oops!"));
+            assertTrue(((Label) error.getChildren().get(1)).getText().contains("Hang on."));
             assertTrue(((Label) error.getChildren().get(1)).getText().contains("Available commands:"));
             DialogBox cleared = (DialogBox) dialogs.getChildren().get(7);
             assertEquals("Fine. Everything's gone.", ((Label) cleared.getChildren().get(1)).getText());

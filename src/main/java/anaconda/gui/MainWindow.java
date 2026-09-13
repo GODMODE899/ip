@@ -14,7 +14,7 @@ import javafx.scene.layout.VBox;
  * Controller for the main GUI.
  */
 public class MainWindow extends AnchorPane {
-    private static final String GOODBYE_RESPONSE = "Alright, until next time.";
+    private static final String GOODBYE_RESPONSE = "Alright, off you go. Try to get something done.";
 
     @FXML
     private ScrollPane scrollPane;

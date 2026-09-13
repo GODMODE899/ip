@@ -82,12 +82,13 @@ public class AnacondaTest {
         Files.createDirectory(file);
         Anaconda.CommandResponse response = anaconda.getCommandResponse("todo book");
         assertEquals(Anaconda.ResponseStatus.ERROR, response.status());
-        assertEquals("Oops! I couldn't save your task list.", response.text());
-        assertEquals("Your list:" + System.lineSeparator() + "1.[T][ ] book", anaconda.getResponse("list"));
+        assertEquals("Hang on. I couldn't save your task list.", response.text());
+        assertEquals("Here's what you've got:" + System.lineSeparator() + "1.[T][ ] book",
+                anaconda.getResponse("list"));
         Files.delete(file);
         anaconda.getResponse("undo");
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
@@ -96,7 +97,7 @@ public class AnacondaTest {
         String output = runSession(file, "todo book\ntodo book\nlist\nundo\nbye\n");
         assertTrue(output.contains("Duplicate: this task is already in your list. I've added it anyway."));
         assertTrue(output.contains("Type undo to remove this addition if it was accidental."));
-        assertTrue(output.contains("Your list:\n1.[T][ ] book\n2.[T][ ] book\n"));
+        assertTrue(output.contains("Here's what you've got:\n1.[T][ ] book\n2.[T][ ] book\n"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
@@ -149,7 +150,7 @@ public class AnacondaTest {
         }
         anaconda.getResponse("undo");
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
@@ -169,7 +170,7 @@ public class AnacondaTest {
                 "clear extra", "bye now", "undo nonsense", "undo", "undo undo", "/BY", "/from invalid")) {
             Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
             assertEquals(Anaconda.ResponseStatus.WARNING, response.status(), input);
-            assertTrue(response.text().startsWith("Oops!"), input);
+            assertTrue(response.text().startsWith("Hang on."), input);
         }
     }
 
@@ -180,7 +181,7 @@ public class AnacondaTest {
         String command = "event meeting /from 2026-09-14 /to 2026-09-13";
         Anaconda.CommandResponse response = anaconda.getCommandResponse(command);
         assertEquals(Anaconda.ResponseStatus.WARNING, response.status());
-        assertTrue(response.text().startsWith("Oops! An event's start date cannot be later than its end date."
+        assertTrue(response.text().startsWith("Hang on. An event's start date cannot be later than its end date."
                 + System.lineSeparator() + "Format: event DESCRIPTION /from START_DATE /to END_DATE"));
         assertFalse(Files.exists(file));
 
@@ -191,7 +192,7 @@ public class AnacondaTest {
         assertFalse(anaconda.getResponse("list").contains("meeting"));
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
@@ -199,9 +200,9 @@ public class AnacondaTest {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "event meeting /from 2026-09-14 /to 2026-09-13\n"
                 + "event meeting /from 2026-09-13 /to 2026-09-13\nlist\nbye\n");
-        assertTrue(output.contains("Oops! An event's start date cannot be later than its end date."));
+        assertTrue(output.contains("Hang on. An event's start date cannot be later than its end date."));
         assertFalse(output.contains("Now you have 2 tasks"));
-        assertTrue(output.contains("Your list:\n1.[E][ ] meeting (from: Sep 13 2026 to: Sep 13 2026)"));
+        assertTrue(output.contains("Here's what you've got:\n1.[E][ ] meeting (from: Sep 13 2026 to: Sep 13 2026)"));
         assertEquals(List.of("E | 0 | meeting | 2026-09-13 | 2026-09-13"), Files.readAllLines(file));
     }
 
@@ -218,14 +219,14 @@ public class AnacondaTest {
                 Anaconda.CommandResponse response = anaconda.getCommandResponse(command);
                 assertEquals(Anaconda.ResponseStatus.WARNING, response.status(), command);
                 assertTrue(response.text().startsWith(
-                        "Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format."
+                        "Hang on. Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format."
                                 + System.lineSeparator() + "Format: "), command);
                 assertEquals(saved, Files.readString(file), command);
             }
         }
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
@@ -233,8 +234,8 @@ public class AnacondaTest {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "deadline report /by 2024-02-30\n"
                 + "deadline report /by 2024-02-29\nlist\nbye\n");
-        assertTrue(output.contains("Oops! Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format."));
-        assertTrue(output.contains("Your list:\n1.[D][ ] report (by: Feb 29 2024)"));
+        assertTrue(output.contains("Hang on. Please enter a valid calendar date in yyyy-MM-dd or dd-MM-yyyy format."));
+        assertTrue(output.contains("Here's what you've got:\n1.[D][ ] report (by: Feb 29 2024)"));
         assertEquals(List.of("D | 0 | report | 2024-02-29"), Files.readAllLines(file));
     }
 
@@ -253,13 +254,13 @@ public class AnacondaTest {
         assertEquals(saved, Files.readString(file));
         Anaconda.CommandResponse invalid = anaconda.getCommandResponse("help extra");
         assertEquals(Anaconda.ResponseStatus.WARNING, invalid.status());
-        assertEquals("Oops! The help command does not take extra text.", invalid.text());
+        assertEquals("Hang on. The help command does not take extra text.", invalid.text());
         anaconda.getResponse("undo");
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
         String console = runSession(file, "help\nbye\n");
         assertTrue(console.contains(help.text().replace("\r\n", "\n")));
-        assertFalse(console.contains("Oops!"));
+        assertFalse(console.contains("Hang on."));
     }
 
     @Test
@@ -268,7 +269,7 @@ public class AnacondaTest {
         for (String input : List.of("blah", "todoo read book", "/todo read book", "yes", "", "   ", "???")) {
             Anaconda.CommandResponse response = anaconda.getCommandResponse(input);
             assertEquals(Anaconda.ResponseStatus.ERROR, response.status(), input);
-            assertTrue(response.text().startsWith("Oops!"), input);
+            assertTrue(response.text().startsWith("Hang on."), input);
             assertTrue(response.text().contains("Available commands:"), input);
             for (String group : List.of("Add: todo, deadline, event", "View/search: list, find, /by, /from",
                     "Update: mark, unmark, delete, clear", "History: undo, undo undo (redo)", "Exit: bye")) {
@@ -281,7 +282,7 @@ public class AnacondaTest {
     public void run_unknownInput_listsCommandsAndContinuesWithoutChangingTasks() throws IOException {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "nonsense\ntodo book\nbye\n");
-        assertTrue(output.contains("Oops! I don't recognize that command.\nAvailable commands:\n"));
+        assertTrue(output.contains("Hang on. Yeah... I don't recognize that command.\nAvailable commands:\n"));
         assertTrue(output.contains("History: undo, undo undo (redo)\nHelp: help\nExit: bye\n"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
@@ -311,8 +312,8 @@ public class AnacondaTest {
         Anaconda anaconda = new Anaconda(parent.resolve("tasks.txt"));
         Anaconda.CommandResponse response = anaconda.getCommandResponse("todo book");
         assertEquals(Anaconda.ResponseStatus.ERROR, response.status());
-        assertEquals("Oops! I couldn't save your task list.", response.text());
-        assertEquals("Your list:", anaconda.getCommandResponse("list").text());
+        assertEquals("Hang on. I couldn't save your task list.", response.text());
+        assertEquals("Here's what you've got:", anaconda.getCommandResponse("list").text());
         assertEquals(Anaconda.ResponseStatus.ERROR, anaconda.getCommandResponse("clear").status());
         assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("list").status());
     }
@@ -321,9 +322,9 @@ public class AnacondaTest {
     public void run_immediateBye_exitsWithoutCreatingDataFile() {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, " BYE \n");
-        assertTrue(output.contains("Yo, it's Anaconda.\nWhat do you want?\n"));
-        assertTrue(output.contains("Alright, until next time."));
-        assertFalse(output.contains("Oops!"));
+        assertTrue(output.contains("Yo, it's Anaconda.\nWhat do you need?\n"));
+        assertTrue(output.contains("Alright, off you go. Try to get something done."));
+        assertFalse(output.contains("Hang on."));
         assertFalse(Files.exists(file));
     }
 
@@ -334,10 +335,10 @@ public class AnacondaTest {
                 + "event meeting /from 2026-08-18 /to 2026-08-20\nmark 2\nunmark 2\n"
                 + "mark 3\ndelete 1\nlist\nbye\n");
         assertTrue(output.contains("Now you have 3 tasks in the list."));
-        assertTrue(output.contains("Marked it done for you:\n  [D][X] report"));
+        assertTrue(output.contains("Fine, that's done now:\n  [D][X] report"));
         assertTrue(output.contains("Really? Unmarked? Alright . . .\n  [D][ ] report"));
-        assertTrue(output.contains("Noted. I've removed this task:\n  [T][ ] read book"));
-        String expectedList = "Your list:\n1.[D][ ] report (by: Aug 19 2026)\n"
+        assertTrue(output.contains("Gone. Hope you didn't need that:\n  [T][ ] read book"));
+        String expectedList = "Here's what you've got:\n1.[D][ ] report (by: Aug 19 2026)\n"
                 + "2.[E][X] meeting (from: Aug 18 2026 to: Aug 20 2026)\n";
         assertTrue(output.contains(expectedList));
         assertEquals(List.of("D | 0 | report | 2026-08-19", "E | 1 | meeting | 2026-08-18 | 2026-08-20"),
@@ -349,11 +350,11 @@ public class AnacondaTest {
     public void run_invalidCommand_continuesToProcessLaterCommands() throws IOException {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "nonsense\ntodo\nmark 1\ntodo book\nbye now\nlist\nbye\n");
-        assertTrue(output.contains("Oops! I don't recognize that command."));
-        assertTrue(output.contains("Oops! The description of a todo cannot be empty."));
-        assertTrue(output.contains("Oops! Task 1 does not exist."));
-        assertTrue(output.contains("Oops! The bye command cannot have extra text."));
-        assertTrue(output.contains("Your list:\n1.[T][ ] book\n"));
+        assertTrue(output.contains("Hang on. Yeah... I don't recognize that command."));
+        assertTrue(output.contains("Hang on. The description of a todo cannot be empty."));
+        assertTrue(output.contains("Hang on. Task 1 does not exist."));
+        assertTrue(output.contains("Hang on. The bye command cannot have extra text."));
+        assertTrue(output.contains("Here's what you've got:\n1.[T][ ] book\n"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
@@ -362,9 +363,9 @@ public class AnacondaTest {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "todo book\nclear\nlist\nbye\n");
         assertFalse(output.contains("You sure?"));
-        assertFalse(output.contains("Oops!"));
+        assertFalse(output.contains("Hang on."));
         assertTrue(output.contains("Fine. Everything's gone."));
-        assertTrue(output.contains("Your list:\n"
+        assertTrue(output.contains("Here's what you've got:\n"
                 + "____________________________________________________________"));
         assertEquals("", Files.readString(file));
         assertFalse(runSession(file, "list\nbye\n").contains("[T]"));
@@ -376,9 +377,9 @@ public class AnacondaTest {
         Files.writeString(file, "T | 0 | book\n");
         String output = runSession(file, "clear\ntodo new task\nlist\nbye\n");
         assertTrue(output.contains("Fine. Everything's gone."));
-        assertTrue(output.contains("Your list:\n1.[T][ ] new task\n"));
+        assertTrue(output.contains("Here's what you've got:\n1.[T][ ] new task\n"));
         assertEquals(List.of("T | 0 | new task"), Files.readAllLines(file));
-        assertFalse(output.contains("Oops!"));
+        assertFalse(output.contains("Hang on."));
     }
 
     @Test
@@ -389,11 +390,11 @@ public class AnacondaTest {
         Files.writeString(file, saved);
         String output = runSession(file, "/by 19-08-2026\n/from 19-08-2026\n/by 19-08-2026 sharp\nbye\n");
         String line = "____________________________________________________________\n";
-        assertTrue(output.contains("Matching tasks:\n1.[D][ ] before (by: Aug 18 2026)\n"
+        assertTrue(output.contains("Found these:\n1.[D][ ] before (by: Aug 18 2026)\n"
                 + "2.[D][ ] exact (by: Aug 19 2026)\n" + line));
-        assertTrue(output.contains("Matching tasks:\n1.[D][ ] exact (by: Aug 19 2026)\n"
+        assertTrue(output.contains("Found these:\n1.[D][ ] exact (by: Aug 19 2026)\n"
                 + "2.[E][ ] after (from: Aug 18 2026 to: Aug 20 2026)\n" + line));
-        assertTrue(output.contains("Matching tasks:\n1.[D][ ] exact (by: Aug 19 2026)\n" + line));
+        assertTrue(output.contains("Found these:\n1.[D][ ] exact (by: Aug 19 2026)\n" + line));
         assertFalse(output.contains("undated"));
         assertEquals(saved, Files.readString(file));
     }
@@ -406,11 +407,11 @@ public class AnacondaTest {
         Files.writeString(file, saved);
         String output = runSession(file, "find BOOK\nfind 2026\nfind\nbye\n");
         String line = "____________________________________________________________\n";
-        assertTrue(output.contains("Here are the matching tasks in your list:\n"
+        assertTrue(output.contains("Found these:\n"
                 + "1.[T][X] Read Book\n2.[D][ ] return book (by: Aug 19 2026)\n"
                 + "3.[E][ ] book launch (from: Aug 18 2026 to: Aug 20 2026)\n" + line));
-        assertTrue(output.contains("Here are the matching tasks in your list:\n" + line));
-        assertTrue(output.contains("Oops! Please provide a keyword to find."));
+        assertTrue(output.contains("Nothing. No matching tasks.\n" + line));
+        assertTrue(output.contains("Hang on. Give me a keyword to look for."));
         assertEquals(saved, Files.readString(file));
     }
 
@@ -422,17 +423,17 @@ public class AnacondaTest {
         String lineSeparator = System.lineSeparator();
 
         assertEquals(String.join(lineSeparator,
-                "Got it. I've added this task:",
+                "Alright, added it:",
                 "  [T][ ] book",
                 "Now you have 1 tasks in the list."), anaconda.getResponse("todo book"));
         assertEquals(String.join(lineSeparator,
-                "Your list:",
+                "Here's what you've got:",
                 "1.[T][ ] book"), anaconda.getResponse("list"));
         assertTrue(anaconda.getResponse("unknown").contains("Available commands:"));
         assertEquals("Fine. Everything's gone.", anaconda.getResponse("clear"));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Your list:", anaconda.getResponse("list"));
-        assertEquals("Alright, until next time.", anaconda.getResponse("bye"));
+        assertEquals("Here's what you've got:", anaconda.getResponse("list"));
+        assertEquals("Alright, off you go. Try to get something done.", anaconda.getResponse("bye"));
         assertTrue(Files.readAllLines(file).isEmpty());
     }
 
@@ -452,10 +453,10 @@ public class AnacondaTest {
 
             anaconda.run();
             System.out.println("Console output still open.");
-            assertTrue(session.output().contains("Your list:\n1.[T][ ] café 读书\n"));
+            assertTrue(session.output().contains("Here's what you've got:\n1.[T][ ] café 读书\n"));
             assertTrue(session.output().endsWith("Console output still open.\n"));
-            assertFalse(session.output().contains("Got it. I've added this task:"));
-            assertFalse(session.output().contains("Oops!"));
+            assertFalse(session.output().contains("Alright, added it:"));
+            assertFalse(session.output().contains("Hang on."));
         }
     }
 
@@ -482,7 +483,7 @@ public class AnacondaTest {
             Files.delete(file);
             Files.createDirectory(file);
 
-            assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse(command), command);
+            assertEquals("Hang on. I couldn't save your task list.", anaconda.getResponse(command), command);
             assertTrue(anaconda.getResponse("list").contains("[T][X] existing task"), command);
         }
     }
@@ -497,21 +498,21 @@ public class AnacondaTest {
             Path file = temporaryDirectory.resolve("tasks-" + i + ".txt");
             Files.write(file, original);
             Anaconda anaconda = new Anaconda(file);
-            assertFalse(anaconda.getResponse(commands[i]).startsWith("Oops!"), commands[i]);
+            assertFalse(anaconda.getResponse(commands[i]).startsWith("Hang on."), commands[i]);
             List<String> changed = Files.readAllLines(file);
 
             assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                    + System.lineSeparator() + "Your list:"), commands[i]);
+                    + System.lineSeparator() + "Here's what you've got:"), commands[i]);
             assertEquals(original, Files.readAllLines(file), commands[i]);
-            assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+            assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
             assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
-                    + System.lineSeparator() + "Your list:"), commands[i]);
+                    + System.lineSeparator() + "Here's what you've got:"), commands[i]);
             assertEquals(changed, Files.readAllLines(file), commands[i]);
-            assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+            assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"));
             assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                    + System.lineSeparator() + "Your list:"));
+                    + System.lineSeparator() + "Here's what you've got:"));
             assertEquals(original, Files.readAllLines(file), commands[i]);
-            assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+            assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
         }
     }
 
@@ -527,15 +528,15 @@ public class AnacondaTest {
         anaconda.getResponse("undo");
 
         assertTrue(anaconda.getResponse("  UnDo\t UnDo  ").startsWith("Undid the previous undo."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
         assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 1 | book"), Files.readAllLines(file));
         assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"));
     }
 
     @Test
@@ -550,15 +551,15 @@ public class AnacondaTest {
             anaconda.getResponse("undo");
             anaconda.getResponse(inputs[i]);
 
-            assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"), inputs[i]);
+            assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"), inputs[i]);
             assertEquals(List.of("T | 0 | book"), Files.readAllLines(file), inputs[i]);
             assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                    + System.lineSeparator() + "Your list:"), inputs[i]);
+                    + System.lineSeparator() + "Here's what you've got:"), inputs[i]);
             assertTrue(Files.readAllLines(file).isEmpty(), inputs[i]);
             assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
-                    + System.lineSeparator() + "Your list:"), inputs[i]);
+                    + System.lineSeparator() + "Here's what you've got:"), inputs[i]);
             assertEquals(List.of("T | 0 | book"), Files.readAllLines(file), inputs[i]);
-            assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"), inputs[i]);
+            assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"), inputs[i]);
         }
     }
 
@@ -571,14 +572,14 @@ public class AnacondaTest {
         anaconda.getResponse("undo");
         anaconda.getResponse("todo report");
 
-        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertEquals(List.of("T | 0 | book", "T | 0 | report"), Files.readAllLines(file));
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 0 | book", "T | 0 | report"), Files.readAllLines(file));
-        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"));
     }
 
     @Test
@@ -589,10 +590,10 @@ public class AnacondaTest {
         anaconda.getResponse("mark 1");
         anaconda.getResponse("undo");
         assertEquals("Fine. Everything's gone.", anaconda.getResponse("clear"));
-        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertTrue(Files.readAllLines(file).isEmpty());
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
@@ -600,7 +601,7 @@ public class AnacondaTest {
     public void getResponse_undoUndoWithoutHistory_reportsErrorWithoutSaving() {
         Path file = temporaryDirectory.resolve("tasks.txt");
         Anaconda anaconda = new Anaconda(file);
-        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertFalse(Files.exists(file));
     }
 
@@ -612,7 +613,7 @@ public class AnacondaTest {
         anaconda.getResponse("mark 1");
         anaconda.getResponse("undo");
         Anaconda restarted = new Anaconda(file);
-        assertEquals("Oops! There is no undo to reverse.", restarted.getResponse("undo undo"));
+        assertEquals("Hang on. There is no undo to reverse.", restarted.getResponse("undo undo"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
@@ -626,19 +627,19 @@ public class AnacondaTest {
         Files.delete(file);
         Files.createDirectory(file);
 
-        assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse("undo undo"));
+        assertEquals("Hang on. I couldn't save your task list.", anaconda.getResponse("undo undo"));
         Files.delete(file);
         assertTrue(anaconda.getResponse("undo undo").startsWith("Undid the previous undo."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 1 | book"), Files.readAllLines(file));
-        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
@@ -651,24 +652,24 @@ public class AnacondaTest {
                 + "3.[E][ ] meeting (from: Sep 09 2026 to: Sep 11 2026)";
         anaconda.getResponse("delete 2");
 
-        assertEquals("Undid the previous command.\nYour list:\n" + originalRows,
+        assertEquals("Undid the previous command.\nHere's what you've got:\n" + originalRows,
                 anaconda.getResponse("undo").replace("\r\n", "\n"));
-        assertEquals("Undid the previous undo.\nYour list:\n1.[T][ ] book\n"
+        assertEquals("Undid the previous undo.\nHere's what you've got:\n1.[T][ ] book\n"
                 + "2.[E][ ] meeting (from: Sep 09 2026 to: Sep 11 2026)",
                 anaconda.getResponse("undo undo").replace("\r\n", "\n"));
-        assertEquals("Undid the previous command.\nYour list:\n" + originalRows,
+        assertEquals("Undid the previous command.\nHere's what you've got:\n" + originalRows,
                 anaconda.getResponse("undo").replace("\r\n", "\n"));
 
         anaconda.getResponse("clear");
-        assertEquals("Undid the previous command.\nYour list:\n" + originalRows,
+        assertEquals("Undid the previous command.\nHere's what you've got:\n" + originalRows,
                 anaconda.getResponse("undo").replace("\r\n", "\n"));
-        assertEquals("Undid the previous undo.\nYour list:",
+        assertEquals("Undid the previous undo.\nHere's what you've got:",
                 anaconda.getResponse("undo undo").replace("\r\n", "\n"));
-        assertEquals("Undid the previous command.\nYour list:\n" + originalRows,
+        assertEquals("Undid the previous command.\nHere's what you've got:\n" + originalRows,
                 anaconda.getResponse("undo").replace("\r\n", "\n"));
         Anaconda initiallyEmpty = new Anaconda(temporaryDirectory.resolve("empty.txt"));
         initiallyEmpty.getResponse("todo another");
-        assertEquals("Undid the previous command.\nYour list:",
+        assertEquals("Undid the previous command.\nHere's what you've got:",
                 initiallyEmpty.getResponse("undo").replace("\r\n", "\n"));
     }
 
@@ -677,9 +678,9 @@ public class AnacondaTest {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file,
                 "todo book\nmark 1\nundo\nundo undo\nundo\nlist\nundo undo\nbye\n");
-        assertTrue(output.contains("Undid the previous undo.\nYour list:\n1.[T][X] book\n"));
-        assertTrue(output.contains("Undid the previous command.\nYour list:\n1.[T][ ] book\n"));
-        assertTrue(output.contains("Oops! There is no undo to reverse."));
+        assertTrue(output.contains("Undid the previous undo.\nHere's what you've got:\n1.[T][X] book\n"));
+        assertTrue(output.contains("Undid the previous command.\nHere's what you've got:\n1.[T][ ] book\n"));
+        assertTrue(output.contains("Hang on. There is no undo to reverse."));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
@@ -692,22 +693,22 @@ public class AnacondaTest {
         anaconda.getResponse("clear");
 
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 1 | book"), Files.readAllLines(file));
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
     public void getResponse_readOnlyAndInvalidCommands_preserveUndoHistory() throws IOException {
         Path file = temporaryDirectory.resolve("tasks.txt");
         Anaconda anaconda = new Anaconda(file);
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
         assertFalse(Files.exists(file));
         anaconda.getResponse("todo book");
         for (String command : new String[] {"list", "find book", "/by 2026-09-10", "/from 2026-09-10 sharp",
@@ -715,9 +716,9 @@ public class AnacondaTest {
             anaconda.getResponse(command);
         }
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
@@ -734,9 +735,9 @@ public class AnacondaTest {
         anaconda.getResponse("undo");
         anaconda.getResponse("clear");
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
@@ -751,7 +752,7 @@ public class AnacondaTest {
         assertEquals(List.of("T | 0 | first"), Files.readAllLines(file));
         anaconda.getResponse("undo");
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
@@ -764,7 +765,7 @@ public class AnacondaTest {
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(Files.readAllLines(file).isEmpty());
     }
 
@@ -773,7 +774,7 @@ public class AnacondaTest {
         Path file = temporaryDirectory.resolve("tasks.txt");
         new Anaconda(file).getResponse("todo book");
         Anaconda restarted = new Anaconda(file);
-        assertEquals("Oops! There is nothing to undo.", restarted.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", restarted.getResponse("undo"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
@@ -786,15 +787,15 @@ public class AnacondaTest {
         Files.delete(file);
         Files.createDirectory(file);
 
-        assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse("undo"));
-        assertEquals("Oops! There is no undo to reverse.", anaconda.getResponse("undo undo"));
+        assertEquals("Hang on. I couldn't save your task list.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is no undo to reverse.", anaconda.getResponse("undo undo"));
         assertTrue(anaconda.getResponse("list").contains("[T][X] book"));
         Files.delete(file);
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(Files.readAllLines(file).isEmpty());
     }
 
@@ -806,24 +807,24 @@ public class AnacondaTest {
         Files.delete(file);
         Files.createDirectory(file);
         for (String command : new String[] {"todo another", "mark 1", "delete 1", "clear"}) {
-            assertEquals("Oops! I couldn't save your task list.", anaconda.getResponse(command), command);
+            assertEquals("Hang on. I couldn't save your task list.", anaconda.getResponse(command), command);
         }
         assertTrue(anaconda.getResponse("list").contains("1.[T][ ] book"));
         assertFalse(anaconda.getResponse("list").contains("another"));
         Files.delete(file);
         assertTrue(anaconda.getResponse("undo").startsWith("Undid the previous command."
-                + System.lineSeparator() + "Your list:"));
+                + System.lineSeparator() + "Here's what you've got:"));
         assertTrue(Files.readAllLines(file).isEmpty());
-        assertEquals("Oops! There is nothing to undo.", anaconda.getResponse("undo"));
+        assertEquals("Hang on. There is nothing to undo.", anaconda.getResponse("undo"));
     }
 
     @Test
     public void run_undoClearAndDelete_restoresTasksAndRecoversFromEmptyHistory() throws IOException {
         Path file = temporaryDirectory.resolve("tasks.txt");
         String output = runSession(file, "undo\ntodo book\ndelete 1\nundo\nclear\nundo\nlist\nbye\n");
-        assertTrue(output.contains("Oops! There is nothing to undo."));
+        assertTrue(output.contains("Hang on. There is nothing to undo."));
         assertTrue(output.contains("Undid the previous command."));
-        assertTrue(output.contains("Your list:\n1.[T][ ] book\n"));
+        assertTrue(output.contains("Here's what you've got:\n1.[T][ ] book\n"));
         assertEquals(List.of("T | 0 | book"), Files.readAllLines(file));
     }
 
@@ -838,7 +839,7 @@ public class AnacondaTest {
                 Anaconda anaconda = new Anaconda(file);
                 assertTrue(anaconda.hasLoadingError());
                 assertTrue(session.output().contains("Starting with a new empty list."));
-                assertEquals("Your list:", anaconda.getResponse("list"));
+                assertEquals("Here's what you've got:", anaconda.getResponse("list"));
                 assertEquals(saved, Files.readString(file));
                 assertEquals(Anaconda.ResponseStatus.SUCCESS, anaconda.getCommandResponse("todo new task").status());
                 assertEquals(List.of("T | 0 | new task"), Files.readAllLines(file));
@@ -850,20 +851,20 @@ public class AnacondaTest {
     @Test
     public void constructor_unreadableDataFile_reportsErrorAndStartsEmpty() {
         String output = runSession(temporaryDirectory, "list\nbye\n");
-        assertTrue(output.startsWith("Oops! Your saved list was compromised or could not be read. "
+        assertTrue(output.startsWith("Hang on. Your saved list was compromised or could not be read. "
                 + "Starting with a new empty list.\n"));
-        assertTrue(output.contains("Your list:\n"
+        assertTrue(output.contains("Here's what you've got:\n"
                 + "____________________________________________________________"));
-        assertTrue(output.contains("Alright, until next time."));
+        assertTrue(output.contains("Alright, off you go. Try to get something done."));
     }
 
     @Test
     public void run_saveFailure_reportsErrorAndContinuesWithoutSuccessMessage() throws IOException {
         Path parentFile = Files.createFile(temporaryDirectory.resolve("not-a-folder"));
         String output = runSession(parentFile.resolve("tasks.txt"), "todo book\nbye\n");
-        assertTrue(output.contains("Oops! I couldn't save your task list."));
-        assertFalse(output.contains("Got it. I've added this task:"));
-        assertTrue(output.contains("Alright, until next time."));
+        assertTrue(output.contains("Hang on. I couldn't save your task list."));
+        assertFalse(output.contains("Alright, added it:"));
+        assertTrue(output.contains("Alright, off you go. Try to get something done."));
     }
 
     @Test
@@ -887,7 +888,7 @@ public class AnacondaTest {
             assertEquals(0, process.exitValue(), Files.readString(output));
             assertEquals(List.of("T | 0 | main task"),
                     Files.readAllLines(temporaryDirectory.resolve("data/anaconda.txt")));
-            assertTrue(Files.readString(output).contains("Alright, until next time."));
+            assertTrue(Files.readString(output).contains("Alright, off you go. Try to get something done."));
         } finally {
             if (process.isAlive()) {
                 process.destroyForcibly();

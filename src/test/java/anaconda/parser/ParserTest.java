@@ -42,11 +42,11 @@ public class ParserTest {
     @Test
     public void parse_emptyOrUnknownCommand_throwsHelpfulException() {
         for (String input : new String[] {"", " ", "\t"}) {
-            assertEquals("Please enter a command.",
+            assertEquals("Give me a command to work with.",
                     assertThrows(AnacondaException.class, () -> parser.parse(input)).getMessage());
         }
         for (String input : new String[] {"todos book", "unknown", "/before 2026-08-19"}) {
-            assertEquals("I don't recognize that command.",
+            assertEquals("Yeah... I don't recognize that command.",
                     assertThrows(AnacondaException.class, () -> parser.parse(input)).getMessage());
         }
     }
@@ -251,7 +251,7 @@ public class ParserTest {
     @Test
     public void parseTaskNumber_nonIntegerOrOverflow_throwsHelpfulException() {
         for (String input : new String[] {"", "two", "1 2", "1.0", "2147483648", "-2147483649"}) {
-            assertEquals("Please provide one task number.",
+            assertEquals("I need one task number here.",
                     assertThrows(AnacondaException.class, () -> parser.parseTaskNumber(input)).getMessage());
         }
     }
@@ -260,7 +260,7 @@ public class ParserTest {
     public void parseKeyword_presentOrMissingKeyword_returnsKeywordOrThrowsHelpfulException()
             throws AnacondaException {
         assertEquals("Read  Book", parser.parseKeyword("Read  Book"));
-        assertEquals("Please provide a keyword to find.",
+        assertEquals("Give me a keyword to look for.",
                 assertThrows(AnacondaException.class, () -> parser.parseKeyword("")).getMessage());
     }
 

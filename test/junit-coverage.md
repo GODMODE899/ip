@@ -75,6 +75,10 @@ Load failures, including malformed task types, field counts, completion flags, a
 entire loaded list and report an empty-list restart in the console and GUI. Tests verify the red startup
 notice, no partial loading, unchanged files at startup, and successful saving/reloading of new tasks.
 
+Personality wording is checked through exact UI output, parser errors, console/GUI command responses,
+and the goodbye avatar fade. Task rows, counts, command guidance, and status colors retain their existing
+formatting and behavior. Empty search/date-filter results say `Nothing. No matching tasks.`
+
 ## Running the tests
 
 Undo coverage includes parser syntax, the UI success message, reusable task snapshots, all seven mutation
