@@ -23,6 +23,24 @@ public class ParserTest {
     private final Parser parser = new Parser();
 
     @Test
+    public void parseTask_pipeInDescription_rejectsEveryTaskType() {
+        for (String description : new String[] {"read | book", "read|book", "|book", "book|", "|", "\"a | b\""}) {
+            for (Command command : new Command[] {Command.TODO, Command.DEADLINE, Command.EVENT}) {
+                String arguments = description + switch (command) {
+                    case DEADLINE -> " /by 2026-09-20";
+                    case EVENT -> " /from 2026-09-20 /to 2026-09-21";
+                    default -> "";
+                };
+                AnacondaException exception = assertThrows(AnacondaException.class, () ->
+                        parser.parseTask(command, arguments));
+                assertEquals("Task descriptions cannot contain '|'. Please remove it and try again.",
+                        exception.getMessage());
+                assertEquals(AnacondaException.Reason.INVALID_INPUT, exception.getReason());
+            }
+        }
+    }
+
+    @Test
     public void parse_allCommandWords_returnsMatchingEnum() throws AnacondaException {
         for (Command command : Command.values()) {
             assertEquals(command, parser.parse(command.name().toLowerCase(Locale.ROOT)).command());

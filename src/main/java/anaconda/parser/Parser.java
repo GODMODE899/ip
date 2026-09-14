@@ -247,11 +247,14 @@ public class Parser {
     }
 
     /**
-     * Ensures that a task description is present.
+     * Ensures that a description is present and cannot conflict with the saved-file separator.
      */
     private void requireDescription(String description, String taskType) throws AnacondaException {
         if (description.isEmpty()) {
             throw new AnacondaException("The description of a " + taskType + " cannot be empty.");
+        }
+        if (description.contains("|")) {
+            throw new AnacondaException("Hisssssss. . . remove that pesky column");
         }
     }
 

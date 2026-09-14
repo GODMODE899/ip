@@ -40,7 +40,8 @@ Command names ignore case, but date markers inside task commands must be lowerca
 
 ### Adding tasks and dates
 
-Descriptions are required and may contain spaces. Todos have no date; deadlines have a due date;
+Descriptions are required and may contain spaces, but cannot contain the pipe character (`|`).
+Todos have no date; deadlines have a due date;
 events have a start and end date.
 
 Use `yyyy-MM-dd` or `dd-MM-yyyy`: `2026-09-20` and `20-09-2026` are equivalent.

@@ -82,6 +82,10 @@ formatting and behavior. Empty search/date-filter results say `Nothing. No match
 The GUI opens with a single green Anaconda greeting before any commands. GUI tests verify its text,
 avatar, command/reply ordering, and preservation of the red load-error notice after the greeting.
 
+Task descriptions reject `|` before changing tasks or saving, preventing user input from corrupting the
+storage format. Tests cover all task types, pipes with and without spaces, leading/trailing pipes,
+quoted pipes, yellow guidance, console recovery, unchanged storage, reloads, and undo history.
+
 ## Running the tests
 
 Undo coverage includes parser syntax, the UI success message, reusable task snapshots, all seven mutation
